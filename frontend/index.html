@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="VerdictAI — Intelligent decentralized dispute resolution powered by GenLayer's Optimistic Oracle and AI." />
+  <title>VerdictAI | Decentralized AI Dispute Resolution</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --bg-base:        #050b18;
+      --bg-surface:     rgba(255,255,255,0.04);
+      --bg-card:        rgba(255,255,255,0.07);
+      --border:         rgba(255,255,255,0.10);
+      --border-glow:    rgba(99,179,237,0.40);
+      --accent-blue:    #63b3ed;
+      --accent-purple:  #b794f4;
+      --accent-teal:    #4fd1c7;
+      --gradient-hero:  linear-gradient(135deg, #0a1628 0%, #0d1f3c 50%, #0a1628 100%);
+      --gradient-btn:   linear-gradient(135deg, #5a67d8, #9f7aea);
+      --gradient-glow:  linear-gradient(135deg, rgba(99,179,237,0.15), rgba(183,148,244,0.15));
+      --text-primary:   #f0f4ff;
+      --text-secondary: #8892a4;
+      --text-muted:     #4a5568;
+      --radius:         14px;
+      --radius-sm:      8px;
+      --shadow-card:    0 8px 32px rgba(0,0,0,0.5);
+      --transition:     0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       ANIMATED BACKGROUND GRID
+    ============================================================ */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99,179,237,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,179,237,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ============================================================
+       GLOWING ORBS
+    ============================================================ */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      animation: orbFloat 8s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 360px; height: 360px; background: rgba(90,103,216,0.18); top: -80px; left: -80px; }
+    .orb-2 { width: 300px; height: 300px; background: rgba(159,122,234,0.14); bottom: 10%; right: -60px; animation-delay: -3s; }
+    .orb-3 { width: 200px; height: 200px; background: rgba(79,209,199,0.10); top: 50%; left: 40%; animation-delay: -5s; }
+
+    @keyframes orbFloat {
+      from { transform: translate(0, 0) scale(1);   }
+      to   { transform: translate(20px, -30px) scale(1.08); }
+    }
+
+    /* ============================================================
+       LAYOUT WRAPPER
+    ============================================================ */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    /* ============================================================
+       NAVBAR
+    ============================================================ */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      background: rgba(5,11,24,0.80);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .nav-logo .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--gradient-btn);
+      box-shadow: 0 0 10px rgba(99,179,237,0.6);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 10px rgba(99,179,237,0.6); }
+      50%      { box-shadow: 0 0 20px rgba(159,122,234,0.8); }
+    }
+
+    .nav-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(99,179,237,0.12);
+      border: 1px solid rgba(99,179,237,0.25);
+      color: var(--accent-blue);
+      letter-spacing: 0.5px;
+    }
+
+    /* ============================================================
+       HERO
+    ============================================================ */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 60px;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent-purple);
+      background: rgba(159,122,234,0.10);
+      border: 1px solid rgba(159,122,234,0.25);
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #f0f4ff 0%, #63b3ed 50%, #b794f4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ============================================================
+       CARDS
+    ============================================================ */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-card);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .card:hover {
+      border-color: var(--border-glow);
+      box-shadow: 0 8px 40px rgba(99,179,237,0.10);
+    }
+    .card + .card { margin-top: 24px; }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .card-icon {
+      width: 42px; height: 42px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .card-icon.blue   { background: rgba(99,179,237,0.15);  }
+    .card-icon.purple { background: rgba(159,122,234,0.15); }
+    .card-icon.teal   { background: rgba(79,209,199,0.15);  }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+    .card-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ============================================================
+       WALLET SECTION
+    ============================================================ */
+    #wallet-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .wallet-address {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: var(--accent-teal);
+      background: rgba(79,209,199,0.08);
+      border: 1px solid rgba(79,209,199,0.20);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+    }
+    #connect-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: rgba(255,87,87,0.10);
+      border: 1px solid rgba(255,87,87,0.25);
+      color: #fc8181;
+    }
+    #connect-badge.connected {
+      background: rgba(72,187,120,0.10);
+      border-color: rgba(72,187,120,0.25);
+      color: #68d391;
+    }
+
+    /* ============================================================
+       FORM
+    ============================================================ */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.3px;
+    }
+
+    input, textarea {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+      width: 100%;
+      resize: vertical;
+    }
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
+    input:focus, textarea:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(99,179,237,0.12);
+    }
+    textarea { min-height: 110px; }
+
+    /* ============================================================
+       BUTTONS
+    ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition);
+      letter-spacing: 0.2px;
+    }
+    .btn-primary {
+      background: var(--gradient-btn);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(90,103,216,0.35);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(90,103,216,0.50);
+    }
+    .btn-primary:active  { transform: translateY(0); }
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-glow);
+      color: var(--accent-blue);
+    }
+    .btn-outline:hover {
+      background: rgba(99,179,237,0.08);
+      transform: translateY(-1px);
+    }
+
+    /* ============================================================
+       VERDICT RESULT
+    ============================================================ */
+    #verdict-result {
+      display: none;
+      animation: fadeSlideIn 0.5s ease forwards;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    .verdict-box {
+      border-radius: var(--radius-sm);
+      padding: 20px 24px;
+      border-left: 4px solid;
+    }
+    .verdict-box.win    { background: rgba(72,187,120,0.08);  border-color: #68d391; }
+    .verdict-box.lose   { background: rgba(252,129,129,0.08); border-color: #fc8181; }
+    .verdict-box.draw   { background: rgba(246,224,94,0.08);  border-color: #f6e05e; }
+
+    .verdict-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+    .verdict-outcome {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .verdict-reasoning {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       DISPUTES LIST
+    ============================================================ */
+    .dispute-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      transition: border-color var(--transition);
+      margin-bottom: 10px;
+    }
+    .dispute-item:hover { border-color: var(--border-glow); }
+    .dispute-item:last-child { margin-bottom: 0; }
+
+    .dispute-meta { flex: 1; }
+    .dispute-id {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent-purple);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .dispute-parties {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .dispute-evidence {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 340px;
+    }
+
+    .status-pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      flex-shrink: 0;
+    }
+    .status-pending  { background: rgba(246,173,85,0.12);  color: #f6ad55; border: 1px solid rgba(246,173,85,0.25); }
+    .status-resolved { background: rgba(72,187,120,0.12);  color: #68d391; border: 1px solid rgba(72,187,120,0.25); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .empty-state span { font-size: 2rem; display: block; margin-bottom: 10px; }
+
+    /* ============================================================
+       HOW IT WORKS
+    ============================================================ */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .step {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px 16px;
+      text-align: center;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+    .step:hover { border-color: var(--border-glow); transform: translateY(-3px); }
+    .step-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--gradient-btn);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin: 0 auto 12px;
+      box-shadow: 0 2px 12px rgba(90,103,216,0.4);
+    }
+    .step-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; }
+    .step-desc  { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ============================================================
+       SPINNER
+    ============================================================ */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================================
+       TOAST
+    ============================================================ */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      padding: 14px 22px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #fff;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none;
+    }
+    #toast.show  { opacity: 1; transform: translateY(0); }
+    #toast.success { background: linear-gradient(135deg, #48bb78, #38a169); }
+    #toast.error   { background: linear-gradient(135deg, #fc8181, #e53e3e); }
+    #toast.info    { background: linear-gradient(135deg, #5a67d8, #9f7aea); }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    footer {
+      text-align: center;
+      padding: 40px 20px 20px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--accent-blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 600px) {
+      nav { padding: 14px 16px; }
+      .hero { padding: 52px 8px 40px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 24px; }
+      .card { padding: 22px 18px; }
+      #toast { right: 16px; left: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient orbs -->
+  <div class="orb orb-1" aria-hidden="true"></div>
+  <div class="orb orb-2" aria-hidden="true"></div>
+  <div class="orb orb-3" aria-hidden="true"></div>
+
+  <!-- ── NAVBAR ─────────────────────────────────────────── -->
+  <nav role="navigation" aria-label="Main navigation">
+    <div class="nav-logo">
+      <div class="dot" aria-hidden="true"></div>
+      VerdictAI
+    </div>
+    <span class="nav-badge">⚡ GenLayer Testnet</span>
+  </nav>
+
+  <!-- ── HERO ───────────────────────────────────────────── -->
+  <header class="hero" role="banner">
+    <p class="hero-tag">🤖 AI · ⚖️ Dispute Resolution · 🔗 Web3</p>
+    <h1>Resolve Disputes with<br />Decentralized AI</h1>
+    <p>
+      Powered by <strong>GenLayer's Optimistic Oracle</strong>, VerdictAI delivers
+      transparent, tamper-proof, AI-generated verdicts — on-chain.
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total Disputes</div></div>
+      <div class="stat"><div class="stat-value" id="stat-resolved">0</div><div class="stat-label">Resolved</div></div>
+      <div class="stat"><div class="stat-value">100%</div><div class="stat-label">On-Chain</div></div>
+    </div>
+  </header>
+
+  <!-- ── MAIN CONTENT ───────────────────────────────────── -->
+  <main class="wrapper">
+
+    <!-- Wallet Connect -->
+    <section class="card" aria-labelledby="wallet-heading">
+      <div class="card-header">
+        <div class="card-icon blue">🔑</div>
+        <div>
+          <div class="card-title" id="wallet-heading">Wallet Connection</div>
+          <div class="card-subtitle">Connect MetaMask to interact with the contract</div>
+        </div>
+      </div>
+      <div id="wallet-status">
+        <span id="connect-badge">● Not Connected</span>
+        <button id="btn-connect" class="btn btn-outline" aria-label="Connect wallet">Connect Wallet</button>
+      </div>
+    </section>
+
+    <!-- Submit Dispute -->
+    <section class="card" aria-labelledby="submit-heading">
+      <div class="card-header">
+        <div class="card-icon purple">⚖️</div>
+        <div>
+          <div class="card-title" id="submit-heading">Submit a Dispute</div>
+          <div class="card-subtitle">Provide details — AI validators will reach consensus</div>
+        </div>
+      </div>
+      <form id="dispute-form" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="claimant">Claimant Address</label>
+            <input type="text" id="claimant" name="claimant" placeholder="0x..." required
+                   aria-required="true" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="respondent">Respondent Address</label>
+            <input type="text" id="respondent" name="respondent" placeholder="0x..." required
+                   aria-required="true" autocomplete="off" />
+          </div>
+          <div class="form-group full">
+            <label for="evidence">Evidence (URL or description)</label>
+            <textarea id="evidence" name="evidence" rows="4"
+                      placeholder="Describe the dispute or paste a link to supporting evidence…"
+                      required aria-required="true"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="claim-amount">Claim Amount (tokens)</label>
+            <input type="number" id="claim-amount" name="claimAmount" placeholder="e.g. 500"
+                   min="0" required aria-required="true" />
+          </div>
+        </div>
+        <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+          <button type="submit" id="btn-submit" class="btn btn-primary">
+            <div class="spinner" id="submit-spinner" role="status" aria-label="Submitting…"></div>
+            <span id="submit-label">🚀 Submit Dispute</span>
+          </button>
+          <button type="button" id="btn-clear" class="btn btn-outline">Clear</button>
+        </div>
+      </form>
+
+      <!-- Verdict Result -->
+      <div id="verdict-result" role="status" aria-live="polite" style="margin-top:24px;">
+        <div class="verdict-box" id="verdict-box">
+          <div class="verdict-label">AI Verdict</div>
+          <div class="verdict-outcome" id="verdict-outcome"></div>
+          <div class="verdict-reasoning" id="verdict-reasoning"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active Disputes -->
+    <section class="card" aria-labelledby="disputes-heading">
+      <div class="card-header">
+        <div class="card-icon teal">📋</div>
+        <div>
+          <div class="card-title" id="disputes-heading">Active Disputes</div>
+          <div class="card-subtitle">All submitted disputes in this session</div>
+        </div>
+      </div>
+      <div id="disputes-list">
+        <div class="empty-state">
+          <span>⚖️</span>
+          No disputes yet. Submit one above to get started.
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="card" aria-labelledby="how-heading">
+      <div class="card-header">
+        <div class="card-icon blue">⚙️</div>
+        <div>
+          <div class="card-title" id="how-heading">How VerdictAI Works</div>
+          <div class="card-subtitle">Powered by GenLayer's Optimistic Oracle</div>
+        </div>
+      </div>
+      <div class="steps" role="list">
+        <div class="step" role="listitem">
+          <div class="step-num">1</div>
+          <div class="step-title">Submit</div>
+          <div class="step-desc">Claimant submits dispute + evidence to the smart contract.</div>
+        </div>
+        <div class="step" role="listitem">
+          <div class="step-num">2</div>
+          <div class="step-title">Validate</div>
+          <div class="step-desc">Multiple GenLayer validators independently run LLM analysis.</div>
+        </div>
+        <div class="step" role="listitem">
+          <div class="step-num">3</div>
+          <div class="step-title">Consensus</div>
+          <div class="step-desc">Optimistic Oracle merges validator outputs into a single verdict.</div>
+        </div>
+        <div class="step" role="listitem">
+          <div class="step-num">4</div>
+          <div class="step-title">Verdict</div>
+          <div class="step-desc">Tamper-proof result is committed on-chain for all parties.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER ─────────────────────────────────────────── -->
+  <footer>
+    <p>Built on <a href="https://genlayer.com" target="_blank" rel="noopener">GenLayer</a> · VerdictAI &copy; 2025 · Decentralized Dispute Resolution</p>
+  </footer>
+
+  <!-- ── TOAST ──────────────────────────────────────────── -->
+  <div id="toast" role="alert" aria-live="assertive"></div>
+
+  <!-- ── JAVASCRIPT ─────────────────────────────────────── -->
+  <script>
+    'use strict';
+
+    // ──────────────────────────────────────────────────────
+    // STATE
+    // ──────────────────────────────────────────────────────
+    const state = {
+      connected: false,
+      address:   null,
+      disputes:  [],   // local session storage
+    };
+
+    // ──────────────────────────────────────────────────────
+    // ELEMENT REFS
+    // ──────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const els = {
+      connectBtn:      $('btn-connect'),
+      connectBadge:    $('connect-badge'),
+      walletStatus:    $('wallet-status'),
+      disputeForm:     $('dispute-form'),
+      submitBtn:       $('btn-submit'),
+      submitSpinner:   $('submit-spinner'),
+      submitLabel:     $('submit-label'),
+      clearBtn:        $('btn-clear'),
+      verdictResult:   $('verdict-result'),
+      verdictBox:      $('verdict-box'),
+      verdictOutcome:  $('verdict-outcome'),
+      verdictReasoning:$('verdict-reasoning'),
+      disputesList:    $('disputes-list'),
+      statTotal:       $('stat-total'),
+      statResolved:    $('stat-resolved'),
+      toast:           $('toast'),
+    };
+
+    // ──────────────────────────────────────────────────────
+    // TOAST UTILITY
+    // ──────────────────────────────────────────────────────
+    let toastTimer = null;
+    function showToast(msg, type = 'info') {
+      const t = els.toast;
+      t.textContent = msg;
+      t.className = `show ${type}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3400);
+    }
+
+    // ──────────────────────────────────────────────────────
+    // WALLET CONNECT (MetaMask / EIP-1193)
+    // ──────────────────────────────────────────────────────
+    els.connectBtn.addEventListener('click', async () => {
+      if (!window.ethereum) {
+        showToast('MetaMask not detected. Please install it!', 'error');
+        return;
+      }
+      try {
+        els.connectBtn.disabled = true;
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts.length === 0) throw new Error('No accounts returned.');
+        setConnectedState(accounts[0]);
+      } catch (err) {
+        showToast(err.message || 'Connection rejected.', 'error');
+        els.connectBtn.disabled = false;
+      }
+    });
+
+    function setConnectedState(address) {
+      state.connected = true;
+      state.address   = address;
+      const short = `${address.slice(0,6)}…${address.slice(-4)}`;
+      els.connectBadge.textContent = `● Connected`;
+      els.connectBadge.classList.add('connected');
+      const addrEl = document.createElement('span');
+      addrEl.className = 'wallet-address';
+      addrEl.textContent = address;
+      addrEl.setAttribute('title', address);
+      // Replace old address if present
+      const old = els.walletStatus.querySelector('.wallet-address');
+      if (old) old.remove();
+      els.walletStatus.appendChild(addrEl);
+      els.connectBtn.textContent = '✓ Connected';
+      els.connectBtn.disabled = true;
+      // Pre-fill claimant
+      $('claimant').value = address;
+      showToast(`Wallet connected: ${short}`, 'success');
+    }
+
+    // Auto-reconnect on load
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_accounts' })
+        .then(accs => { if (accs.length > 0) setConnectedState(accs[0]); })
+        .catch(() => {});
+      window.ethereum.on('accountsChanged', accs => {
+        if (accs.length > 0) setConnectedState(accs[0]);
+        else { state.connected = false; state.address = null; }
+      });
+    }
+
+    // ──────────────────────────────────────────────────────
+    // DISPUTE FORM — SUBMIT
+    // ──────────────────────────────────────────────────────
+    els.disputeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const claimant    = $('claimant').value.trim();
+      const respondent  = $('respondent').value.trim();
+      const evidence    = $('evidence').value.trim();
+      const claimAmount = parseInt($('claim-amount').value, 10);
+
+      // Basic validation
+      if (!claimant || !respondent || !evidence || isNaN(claimAmount)) {
+        showToast('Please fill in all fields.', 'error');
+        return;
+      }
+      if (claimant === respondent) {
+        showToast('Claimant and respondent cannot be the same.', 'error');
+        return;
+      }
+
+      setLoadingState(true);
+
+      try {
+        // ── Simulate on-chain call (replace with GenLayer SDK call) ──
+        await simulateDelay(1800);
+        const verdict = await mockAIResolution(claimant, respondent, evidence);
+
+        const dispute = {
+          id:          state.disputes.length,
+          claimant,
+          respondent,
+          evidence,
+          claimAmount,
+          status:      'resolved',
+          verdict:     verdict.verdict,
+          reasoning:   verdict.reasoning,
+          confidence:  verdict.confidence,
+          timestamp:   new Date().toLocaleTimeString(),
+        };
+        state.disputes.push(dispute);
+        updateStats();
+        renderDisputesList();
+        showVerdictCard(verdict);
+        showToast('Dispute resolved by AI validators!', 'success');
+        els.disputeForm.reset();
+        if (state.address) $('claimant').value = state.address;
+      } catch (err) {
+        showToast(err.message || 'Transaction failed.', 'error');
+      } finally {
+        setLoadingState(false);
+      }
+    });
+
+    // Clear form
+    els.clearBtn.addEventListener('click', () => {
+      els.disputeForm.reset();
+      if (state.address) $('claimant').value = state.address;
+      els.verdictResult.style.display = 'none';
+    });
+
+    // ──────────────────────────────────────────────────────
+    // UI HELPERS
+    // ──────────────────────────────────────────────────────
+    function setLoadingState(loading) {
+      els.submitBtn.disabled       = loading;
+      els.submitSpinner.style.display = loading ? 'block' : 'none';
+      els.submitLabel.textContent  = loading ? 'Resolving…' : '🚀 Submit Dispute';
+    }
+
+    function showVerdictCard(verdict) {
+      const map = {
+        claimant_wins:  { cls: 'win',  label: '✅ Claimant Wins' },
+        respondent_wins:{ cls: 'lose', label: '❌ Respondent Wins' },
+        inconclusive:   { cls: 'draw', label: '⚖️ Inconclusive' },
+      };
+      const { cls, label } = map[verdict.verdict] || { cls: 'draw', label: verdict.verdict };
+      els.verdictBox.className = `verdict-box ${cls}`;
+      els.verdictOutcome.textContent  = `${label}  (${verdict.confidence}% confidence)`;
+      els.verdictReasoning.textContent = verdict.reasoning;
+      els.verdictResult.style.display = 'block';
+      els.verdictResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function updateStats() {
+      els.statTotal.textContent    = state.disputes.length;
+      els.statResolved.textContent = state.disputes.filter(d => d.status === 'resolved').length;
+    }
+
+    function renderDisputesList() {
+      if (state.disputes.length === 0) {
+        els.disputesList.innerHTML = `
+          <div class="empty-state">
+            <span>⚖️</span>No disputes yet. Submit one above to get started.
+          </div>`;
+        return;
+      }
+      els.disputesList.innerHTML = state.disputes
+        .slice()
+        .reverse()
+        .map(d => `
+          <article class="dispute-item" data-id="${d.id}">
+            <div class="dispute-meta">
+              <div class="dispute-id">DISPUTE #${d.id} · ${d.timestamp}</div>
+              <div class="dispute-parties">
+                ${truncate(d.claimant, 12)} <span style="opacity:.5">vs</span> ${truncate(d.respondent, 12)}
+              </div>
+              <div class="dispute-evidence">${escapeHtml(d.evidence)}</div>
+            </div>
+            <span class="status-pill status-${d.status}">${d.status}</span>
+          </article>`)
+        .join('');
+    }
+
+    function truncate(str, n) {
+      if (!str) return '—';
+      return str.length > n ? str.slice(0, n) + '…' : str;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ──────────────────────────────────────────────────────
+    // MOCK AI RESOLUTION
+    // Replace this entire function with a GenLayer SDK call:
+    //   gl.call_contract(CONTRACT_ADDRESS, 'resolve_dispute', [disputeId])
+    // ──────────────────────────────────────────────────────
+    function mockAIResolution(claimant, respondent, evidence) {
+      const verdicts   = ['claimant_wins', 'respondent_wins', 'inconclusive'];
+      const reasonings = [
+        'After analyzing the submitted evidence, the claimant has provided sufficient proof of breach of agreement. The evidence clearly demonstrates non-delivery of promised services.',
+        'The respondent\'s counter-evidence outweighs the claimant\'s submission. The transaction records indicate the service was completed as specified in the agreement.',
+        'The evidence is insufficient for a definitive ruling. Both parties should submit additional documentation or consider mediation.',
+      ];
+      const idx      = Math.floor(Math.random() * 3);
+      const confidence = 55 + Math.floor(Math.random() * 40);
+      return Promise.resolve({
+        verdict:    verdicts[idx],
+        reasoning:  reasonings[idx],
+        confidence,
+      });
+    }
+
+    function simulateDelay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // ──────────────────────────────────────────────────────
+    // ANIMATED COUNTER FOR STATS
+    // ──────────────────────────────────────────────────────
+    function animateCounter(el, target) {
+      let current = 0;
+      const step = Math.ceil(target / 20);
+      const timer = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = current;
+        if (current >= target) clearInterval(timer);
+      }, 40);
+    }
+  </script>
+</body>
+</html>
