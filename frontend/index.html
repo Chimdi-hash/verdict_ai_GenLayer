@@ -336,6 +336,7 @@
       opacity: 0;
       transition: opacity 0.4s ease;
       animation: rotateBorder 3s linear infinite paused;
+      pointer-events: none; /* FIX: Prevent blocking input clicks */
     }
     .card:hover::before {
       opacity: 1;
@@ -1188,6 +1189,35 @@
     };
 
     // ──────────────────────────────────────────────────────
+    // PERSISTENCE HELPERS
+    // ──────────────────────────────────────────────────────
+    function saveState() {
+      const data = {
+        disputeCount: state.disputeCount,
+        list: state.list,
+        // Map is not JSON serializable, so we convert it
+        disputes: Array.from(state.disputes.entries())
+      };
+      localStorage.setItem('verdict_ai_state', JSON.stringify(data));
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem('verdict_ai_state');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          state.disputeCount = parsed.disputeCount || 0;
+          state.list = parsed.list || [];
+          state.disputes = new Map(parsed.disputes || []);
+          renderDisputesList();
+          updateStats();
+        } catch (e) {
+          console.error("Failed to load state", e);
+        }
+      }
+    }
+
+    // ──────────────────────────────────────────────────────
     // ELEMENT REFS
     // ──────────────────────────────────────────────────────
     const $ = id => document.getElementById(id);
@@ -1234,7 +1264,13 @@
     // ──────────────────────────────────────────────────────
     els.connectBtn.addEventListener('click', async () => {
       if (!window.ethereum) {
-        showToast('MetaMask not detected. Please install it!', 'error');
+        showToast('MetaMask not detected. Enabling Mock Session…', 'info');
+        // Simulated delay for "connecting"
+        els.connectBtn.disabled = true;
+        els.connectBtn.textContent = 'Connecting…';
+        await delay(1000);
+        const mockAddr = '0xdemo' + Math.random().toString(16).slice(2, 10) + '…' + Math.random().toString(16).slice(2, 6);
+        setConnectedState(mockAddr + ' (Mock)');
         return;
       }
       try {
@@ -1245,6 +1281,7 @@
       } catch (err) {
         showToast(err.message || 'Connection rejected.', 'error');
         els.connectBtn.disabled = false;
+        els.connectBtn.textContent = 'Connect Wallet';
       }
     });
 
@@ -1370,11 +1407,15 @@
     els.disputeForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
+      // ── 0. Check Wallet Connection ─────────────────────────────
+      if (!state.connected) {
+        showToast('Please connect your wallet first.', 'error');
+        els.connectBtn.classList.add('pulse-once'); // Subtle nudge
+        setTimeout(() => els.connectBtn.classList.remove('pulse-once'), 1000);
+        return;
+      }
+
       // ── 1. Read and validate form inputs ───────────────────────
-      // These map 1-to-1 to the contract parameters:
-      //   party_a   → Party A input
-      //   party_b   → Party B input
-      //   evidence  → Raw Evidence textarea
       const partyA    = $('party-a').value.trim();
       const partyB    = $('party-b').value.trim();
       const evidence  = $('evidence').value.trim();
@@ -1389,8 +1430,6 @@
       }
 
       // ── 2. Generate a unique dispute_id ────────────────────────
-      // In production, genlayer-js generates & tracks this internally.
-      // Here we create it client-side so the UI can display it immediately.
       const disputeId = generateDisputeId();
 
       // ── 3. Lock the UI and reveal the lifecycle panel ──────────
@@ -1402,61 +1441,49 @@
 
       try {
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // STAGE 1 — genlayer-js SDK client initialisation
-        // genlayer-js creates an RPC connection to the GenLayer
-        // network node and prepares the transaction envelope.
+        // STAGE 1 — SDK Client Config
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        setStage(1, 'spinning', 'Initialising SDK client and resolving RPC endpoint…');
-        await delay(900);
-        setStage(1, 'done', `SDK connected · dispute_id="${disputeId}" queued for broadcast`);
+        setStage(1, 'spinning', 'Linking to network gateway via genlayer-js…');
+        await delay(1200);
+        setStage(1, 'done', `SDK ready · broadcast sequence initiated for ${disputeId}`);
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // STAGE 2 — Optimistic Democracy (Leader Node)
-        // The elected leader node calls the contract and executes
-        // the non-deterministic block:
-        //   gl.nondet.exec_prompt(prompt)  ← LLM call happens here
-        // Other validator nodes wait for the leader's result before
-        // running their own independent checks.
+        // STAGE 2 — Optimistic Democracy (Leader LLM)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        setStage(2, 'spinning', 'Leader node evaluating dispute via gl.nondet.exec_prompt()…');
-        await delay(1400);
-        setStage(2, 'done', 'Leader verdict produced · broadcasting to validator pool…');
+        setStage(2, 'spinning', 'Leader node computing nondet gl.nondet.exec_prompt()…');
+        await delay(1800);
+        setStage(2, 'done', 'Draft verdict proposed · propagating across validator mesh…');
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // STAGE 3 — Equivalence Principle (Validator Nodes)
-        // Each validator independently runs the same LLM prompt
-        // and calls gl.eq_principle.prompt_non_comparative().
-        // This compares every validator's output semantically —
-        // not character-for-character — to reach consensus.
-        // Only if the outputs are semantically equivalent does
-        // the result get committed to the TreeMap on-chain.
+        // STAGE 3 — Equivalence Principle (Verification)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        setStage(3, 'spinning', 'Running gl.eq_principle.prompt_non_comparative() across semantic LLM nodes…');
-        await delay(1600);
-        setStage(3, 'done', 'Semantic equivalence confirmed · verdict committed to disputes[dispute_id]');
+        setStage(3, 'spinning', 'Validating semantic equivalence across LLM nodes…');
+        await delay(2000);
+        setStage(3, 'done', 'Consensus reached · write transaction committed to TreeMap');
 
         // ── 4. Produce the mock contract return value ───────────
-        // This is what submit_dispute() stores in self.disputes[dispute_id].
-        // On a live network, you would read it back with get_verdict(dispute_id).
         const verdictText = buildMockVerdict(partyA, partyB, evidence);
+        const txHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
 
-        // ── 5. Update local state (mirrors on-chain TreeMap + counter) ──
-        state.disputes.set(disputeId, verdictText);  // disputes[dispute_id] = verdictText
-        state.disputeCount += 1;                     // dispute_count += 1
+        // ── 5. Update local state & persist ────────────────────────
+        state.disputes.set(disputeId, verdictText);
+        state.disputeCount += 1;
         state.list.push({
           disputeId,
+          txHash,
           partyA,
           partyB,
           evidence,
           verdict: verdictText,
-          timestamp: new Date().toLocaleTimeString(),
+          timestamp: new Date().toLocaleString(),
         });
+        saveState();
 
         // ── 6. Render the verdict card and raw state mirror ─────
-        showVerdictCard(disputeId, partyA, partyB, verdictText);
+        showVerdictCard(disputeId, partyA, partyB, verdictText, txHash);
         updateStats();
         renderDisputesList();
-        showToast('✅ Consensus reached — verdict committed on-chain!', 'success');
+        showToast('✅ Verdict committed on-chain!', 'success');
         els.disputeForm.reset();
 
       } catch (err) {
@@ -1490,15 +1517,18 @@
      * The `verdictText` string is exactly what get_verdict(dispute_id)
      * returns from the on-chain TreeMap.
      */
-    function showVerdictCard(disputeId, partyA, partyB, verdictText) {
+    function showVerdictCard(disputeId, partyA, partyB, verdictText, txHash) {
       // Detect winner from the AI text to choose verdict-box colour class
       const lower = verdictText.toLowerCase();
       let cls = 'draw';
-      if (lower.includes('party a') || lower.includes(partyA.toLowerCase())) cls = 'win';
-      else if (lower.includes('party b') || lower.includes(partyB.toLowerCase())) cls = 'lose';
+      if (lower.includes('party a') || lower.includes(partyA.toLowerCase()) || lower.includes('claimant')) cls = 'win';
+      else if (lower.includes('party b') || lower.includes(partyB.toLowerCase()) || lower.includes('respondent')) cls = 'lose';
 
-      // Show the dispute ID that was used as the TreeMap key
-      els.disputeIdBadge.textContent = `🔑 Dispute ID (on-chain key): ${disputeId}`;
+      // Show the dispute ID and simulated TX hash
+      els.disputeIdBadge.innerHTML = `
+        <div style="margin-bottom:4px;">🔑 Dispute ID: <span style="color:var(--text-primary)">${disputeId}</span></div>
+        <div style="font-size:0.7rem; opacity:0.6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"># TX Hash: ${txHash || 'Pending…'}</div>
+      `;
 
       // Verdict outcome header
       els.verdictBox.className       = `verdict-box ${cls}`;
@@ -1516,6 +1546,7 @@
         args:       [disputeId],
         returns:    verdictText,
         contract:   'VerdictAI',
+        transaction: txHash,
         state_key:  `disputes["${disputeId}"]`,
       }, null, 2);
 
@@ -1565,14 +1596,14 @@
      * In production, this string comes directly from the contract call response.
      */
     function buildMockVerdict(partyA, partyB, evidence) {
-      // Pool of verdict templates — the LLM picks based on context
+      // Pool of verdict templates mapping to GenLayer LLM outputs
       const templates = [
         // Party A wins
-        `After careful analysis of the submitted evidence, it is clear that Party A (${partyA}) has demonstrated a valid and substantiated claim. The evidence provided — specifically: "${truncate(evidence, 80)}" — establishes a preponderance of facts in favour of Party A. Party B (${partyB}) has failed to produce a credible counter-argument. Ruling: Party A wins.`,
+        `Arbitration Result: VALIDATED. Following a multi-node semantic analysis of the contractual obligations and the evidence provided ("${truncate(evidence, 60)}"), the GenLayer oracle confirms that Party A (${partyA}) has fulfilled all requisite conditions. Party B (${partyB}) is found in breach of the specified agreement. The Equivalence Principle confirms a 100% consensus on this ruling.`,
         // Party B wins
-        `Upon thorough review of all submitted facts, the balance of evidence favours Party B (${partyB}). The evidence provided by Party A ("${truncate(evidence, 80)}") does not sufficiently substantiate the claim, whereas Party B's position is consistent with the described circumstances. Ruling: Party B wins.`,
+        `Arbitration Result: DISMISSED. The claimant, Party A (${partyA}), has submitted insufficient evidence to substantiate the alleged breach. Upon independent evaluation of the facts ("${truncate(evidence, 60)}"), the validator pool concludes that the respondent, Party B (${partyB}), acted within the bounds of the protocol. Consensus finalized and committed on-chain.`,
         // Inconclusive
-        `The evidence provided — "${truncate(evidence, 80)}" — is insufficient to reach a definitive ruling. While both Party A (${partyA}) and Party B (${partyB}) have presented plausible positions, a clear winner cannot be determined without additional documentation. The tribunal recommends mediation or further evidence submission.`,
+        `Arbitration Result: INCONCLUSIVE. The provided dataset ("${truncate(evidence, 60)}") contains insufficient deterministic parameters for a final ruling. Both Party A (${partyA}) and Party B (${partyB}) are advised to provide supplementary documentation. The GenLayer consensus engine has recorded a null-verdict to prevent arbitrary state transitions.`
       ];
       // Deterministically pick based on combined string hash so same
       // inputs always produce the same demo outcome
@@ -1608,13 +1639,20 @@
     // ──────────────────────────────────────────────────────
     function animateCounter(el, target) {
       let current = parseInt(el.textContent, 10) || 0;
-      const step  = Math.max(1, Math.ceil((target - current) / 20));
+      const step  = Math.max(1, Math.ceil(Math.abs(target - current) / 20));
       const timer = setInterval(() => {
-        current = Math.min(current + step, target);
+        if (current < target) {
+          current = Math.min(current + step, target);
+        } else if (current > target) {
+          current = Math.max(current - step, target);
+        }
         el.textContent = current;
-        if (current >= target) clearInterval(timer);
+        if (current === target) clearInterval(timer);
       }, 40);
     }
+
+    // Initialize state on load
+    window.addEventListener('DOMContentLoaded', loadState);
   </script>
 </body>
 </html>
