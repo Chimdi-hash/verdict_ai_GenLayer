@@ -1,45 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="VerdictAI — Intelligent decentralized dispute resolution powered by GenLayer's Optimistic Oracle and AI." />
+  <meta name="description"
+    content="VerdictAI — Intelligent decentralized dispute resolution powered by GenLayer's Optimistic Oracle and AI." />
   <title>VerdictAI | Decentralized AI Dispute Resolution</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
   <style>
     /* ============================================================
        DESIGN TOKENS
     ============================================================ */
     :root {
-      --bg-base:        #050b18;
-      --bg-surface:     rgba(255,255,255,0.04);
-      --bg-card:        rgba(255,255,255,0.07);
-      --border:         rgba(255,255,255,0.10);
-      --border-glow:    rgba(99,179,237,0.40);
-      --accent-blue:    #63b3ed;
-      --accent-purple:  #b794f4;
-      --accent-teal:    #4fd1c7;
-      --gradient-hero:  linear-gradient(135deg, #0a1628 0%, #0d1f3c 50%, #0a1628 100%);
-      --gradient-btn:   linear-gradient(135deg, #5a67d8, #9f7aea);
-      --gradient-glow:  linear-gradient(135deg, rgba(99,179,237,0.15), rgba(183,148,244,0.15));
-      --text-primary:   #f0f4ff;
+      --bg-base: #050b18;
+      --bg-surface: rgba(255, 255, 255, 0.04);
+      --bg-card: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.10);
+      --border-glow: rgba(99, 179, 237, 0.40);
+      --accent-blue: #63b3ed;
+      --accent-purple: #b794f4;
+      --accent-teal: #4fd1c7;
+      --gradient-hero: linear-gradient(135deg, #0a1628 0%, #0d1f3c 50%, #0a1628 100%);
+      --gradient-btn: linear-gradient(135deg, #5a67d8, #9f7aea);
+      --gradient-glow: linear-gradient(135deg, rgba(99, 179, 237, 0.15), rgba(183, 148, 244, 0.15));
+      --text-primary: #f0f4ff;
       --text-secondary: #8892a4;
-      --text-muted:     #4a5568;
-      --radius:         14px;
-      --radius-sm:      8px;
-      --shadow-card:    0 8px 32px rgba(0,0,0,0.5);
-      --transition:     0.3s cubic-bezier(0.4,0,0.2,1);
-      --neon-green:     #00ffb3;
-      --neon-pink:      #ff2d9b;
+      --text-muted: #4a5568;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --neon-green: #00ffb3;
+      --neon-pink: #ff2d9b;
     }
 
     /* ============================================================
        RESET & BASE
     ============================================================ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -57,16 +68,22 @@
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(99,179,237,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99,179,237,0.05) 1px, transparent 1px);
+        linear-gradient(rgba(99, 179, 237, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 179, 237, 0.05) 1px, transparent 1px);
       background-size: 60px 60px;
       pointer-events: none;
       z-index: 0;
       animation: gridDrift 20s linear infinite;
     }
+
     @keyframes gridDrift {
-      0%   { background-position: 0 0, 0 0; }
-      100% { background-position: 60px 60px, 60px 60px; }
+      0% {
+        background-position: 0 0, 0 0;
+      }
+
+      100% {
+        background-position: 60px 60px, 60px 60px;
+      }
     }
 
     /* Particle canvas */
@@ -89,13 +106,41 @@
       z-index: 0;
       animation: orbFloat 8s ease-in-out infinite alternate;
     }
-    .orb-1 { width: 360px; height: 360px; background: rgba(90,103,216,0.18); top: -80px; left: -80px; }
-    .orb-2 { width: 300px; height: 300px; background: rgba(159,122,234,0.14); bottom: 10%; right: -60px; animation-delay: -3s; }
-    .orb-3 { width: 200px; height: 200px; background: rgba(79,209,199,0.10); top: 50%; left: 40%; animation-delay: -5s; }
+
+    .orb-1 {
+      width: 360px;
+      height: 360px;
+      background: rgba(90, 103, 216, 0.18);
+      top: -80px;
+      left: -80px;
+    }
+
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: rgba(159, 122, 234, 0.14);
+      bottom: 10%;
+      right: -60px;
+      animation-delay: -3s;
+    }
+
+    .orb-3 {
+      width: 200px;
+      height: 200px;
+      background: rgba(79, 209, 199, 0.10);
+      top: 50%;
+      left: 40%;
+      animation-delay: -5s;
+    }
 
     @keyframes orbFloat {
-      from { transform: translate(0, 0) scale(1);   }
-      to   { transform: translate(20px, -30px) scale(1.08); }
+      from {
+        transform: translate(0, 0) scale(1);
+      }
+
+      to {
+        transform: translate(20px, -30px) scale(1.08);
+      }
     }
 
     /* ============================================================
@@ -120,15 +165,23 @@
       align-items: center;
       justify-content: space-between;
       padding: 18px 28px;
-      background: rgba(5,11,24,0.85);
+      background: rgba(5, 11, 24, 0.85);
       backdrop-filter: blur(24px);
       border-bottom: 1px solid transparent;
       background-clip: padding-box;
       animation: navBorderGlow 4s ease-in-out infinite;
     }
+
     @keyframes navBorderGlow {
-      0%,100% { border-bottom-color: rgba(99,179,237,0.18); }
-      50%      { border-bottom-color: rgba(183,148,244,0.40); }
+
+      0%,
+      100% {
+        border-bottom-color: rgba(99, 179, 237, 0.18);
+      }
+
+      50% {
+        border-bottom-color: rgba(183, 148, 244, 0.40);
+      }
     }
 
     .nav-logo {
@@ -139,16 +192,28 @@
       font-weight: 700;
       letter-spacing: -0.3px;
     }
+
     .nav-logo .dot {
-      width: 10px; height: 10px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: var(--gradient-btn);
-      box-shadow: 0 0 10px rgba(99,179,237,0.6);
+      box-shadow: 0 0 10px rgba(99, 179, 237, 0.6);
       animation: pulse 2s ease-in-out infinite;
     }
+
     @keyframes pulse {
-      0%,100% { box-shadow: 0 0 10px rgba(99,179,237,0.6); transform: scale(1); }
-      50%      { box-shadow: 0 0 22px rgba(159,122,234,0.9); transform: scale(1.25); }
+
+      0%,
+      100% {
+        box-shadow: 0 0 10px rgba(99, 179, 237, 0.6);
+        transform: scale(1);
+      }
+
+      50% {
+        box-shadow: 0 0 22px rgba(159, 122, 234, 0.9);
+        transform: scale(1.25);
+      }
     }
 
     /* ============================================================
@@ -157,11 +222,19 @@
     .hero {
       text-align: center;
       padding: 80px 20px 60px;
-      animation: heroFadeIn 1.2s cubic-bezier(0.4,0,0.2,1) both;
+      animation: heroFadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) both;
     }
+
     @keyframes heroFadeIn {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* ── Tech Chips ─────────────────────────────────────── */
@@ -173,6 +246,7 @@
       justify-content: center;
       margin-bottom: 32px;
     }
+
     .chip {
       display: inline-flex;
       align-items: center;
@@ -183,48 +257,77 @@
       font-weight: 600;
       letter-spacing: 0.8px;
       text-transform: uppercase;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
       backdrop-filter: blur(8px);
       color: var(--text-secondary);
       position: relative;
       overflow: hidden;
       transition: border-color var(--transition), color var(--transition), background var(--transition);
     }
+
     .chip:hover {
-      background: rgba(255,255,255,0.07);
+      background: rgba(255, 255, 255, 0.07);
       color: var(--text-primary);
     }
+
     .chip-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
       flex-shrink: 0;
     }
-    .chip-dot.blue   { background: var(--accent-blue);   box-shadow: 0 0 8px rgba(99,179,237,0.7); }
-    .chip-dot.purple { background: var(--accent-purple); box-shadow: 0 0 8px rgba(183,148,244,0.7); }
-    .chip-dot.teal   { background: var(--accent-teal);   box-shadow: 0 0 8px rgba(79,209,199,0.7); }
+
+    .chip-dot.blue {
+      background: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(99, 179, 237, 0.7);
+    }
+
+    .chip-dot.purple {
+      background: var(--accent-purple);
+      box-shadow: 0 0 8px rgba(183, 148, 244, 0.7);
+    }
+
+    .chip-dot.teal {
+      background: var(--accent-teal);
+      box-shadow: 0 0 8px rgba(79, 209, 199, 0.7);
+    }
+
     /* Chip shimmer */
     .chip::after {
       content: '';
       position: absolute;
-      top: 0; left: -100%;
+      top: 0;
+      left: -100%;
       width: 50%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
       animation: shimmerSweep 3.5s ease-in-out infinite;
     }
-    .chip:nth-child(2)::after { animation-delay: 0.9s; }
-    .chip:nth-child(3)::after { animation-delay: 1.8s; }
-    @keyframes shimmerSweep {
-      0%   { left: -100%; }
-      100% { left: 200%; }
+
+    .chip:nth-child(2)::after {
+      animation-delay: 0.9s;
     }
+
+    .chip:nth-child(3)::after {
+      animation-delay: 1.8s;
+    }
+
+    @keyframes shimmerSweep {
+      0% {
+        left: -100%;
+      }
+
+      100% {
+        left: 200%;
+      }
+    }
+
     /* Separator between chips */
     .chip-sep {
       width: 1px;
       height: 14px;
-      background: rgba(255,255,255,0.12);
+      background: rgba(255, 255, 255, 0.12);
       flex-shrink: 0;
     }
 
@@ -242,16 +345,47 @@
       background-clip: text;
       animation: gradientShift 5s ease infinite, glitchFlicker 9s ease-in-out infinite;
     }
+
     @keyframes gradientShift {
-      0%,100% { background-position: 0% center; }
-      50%      { background-position: 100% center; }
+
+      0%,
+      100% {
+        background-position: 0% center;
+      }
+
+      50% {
+        background-position: 100% center;
+      }
     }
+
     @keyframes glitchFlicker {
-      0%,94%,100%  { filter: none; transform: none; }
-      95%  { filter: blur(0.5px) hue-rotate(15deg); transform: skewX(-1deg) translateX(2px); }
-      96%  { filter: none; transform: none; }
-      97%  { filter: blur(0.8px) hue-rotate(-20deg); transform: skewX(1.5deg) translateX(-3px); }
-      98%  { filter: none; transform: none; }
+
+      0%,
+      94%,
+      100% {
+        filter: none;
+        transform: none;
+      }
+
+      95% {
+        filter: blur(0.5px) hue-rotate(15deg);
+        transform: skewX(-1deg) translateX(2px);
+      }
+
+      96% {
+        filter: none;
+        transform: none;
+      }
+
+      97% {
+        filter: blur(0.8px) hue-rotate(-20deg);
+        transform: skewX(1.5deg) translateX(-3px);
+      }
+
+      98% {
+        filter: none;
+        transform: none;
+      }
     }
 
     .hero p {
@@ -260,7 +394,7 @@
       max-width: 520px;
       margin: 0 auto 40px;
       line-height: 1.7;
-      animation: heroFadeIn 1.4s 0.3s cubic-bezier(0.4,0,0.2,1) both;
+      animation: heroFadeIn 1.4s 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
     }
 
     .hero-stats {
@@ -268,11 +402,13 @@
       justify-content: center;
       gap: 40px;
       flex-wrap: wrap;
-      animation: heroFadeIn 1.6s 0.5s cubic-bezier(0.4,0,0.2,1) both;
+      animation: heroFadeIn 1.6s 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
     }
+
     .stat {
       text-align: center;
     }
+
     .stat-value {
       font-size: 1.6rem;
       font-weight: 800;
@@ -282,10 +418,19 @@
       background-clip: text;
       animation: countGlow 3s ease-in-out infinite;
     }
+
     @keyframes countGlow {
-      0%,100% { filter: drop-shadow(0 0 6px rgba(99,179,237,0.4)); }
-      50%      { filter: drop-shadow(0 0 14px rgba(183,148,244,0.7)); }
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 6px rgba(99, 179, 237, 0.4));
+      }
+
+      50% {
+        filter: drop-shadow(0 0 14px rgba(183, 148, 244, 0.7));
+      }
     }
+
     .stat-label {
       font-size: 0.78rem;
       color: var(--text-muted);
@@ -311,11 +456,16 @@
       opacity: 0;
       transform: translateY(28px);
     }
+
     .card.visible {
-      animation: cardEntrance 0.7s cubic-bezier(0.4,0,0.2,1) forwards;
+      animation: cardEntrance 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
+
     @keyframes cardEntrance {
-      to { opacity: 1; transform: translateY(0); }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Rotating glow border on hover */
@@ -325,57 +475,72 @@
       inset: -2px;
       border-radius: calc(var(--radius) + 2px);
       padding: 2px;
-      background: conic-gradient(
-        from var(--angle, 0deg),
-        transparent 0deg 270deg,
-        rgba(99,179,237,0.7) 270deg 360deg
-      );
+      background: conic-gradient(from var(--angle, 0deg),
+          transparent 0deg 270deg,
+          rgba(99, 179, 237, 0.7) 270deg 360deg);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
       opacity: 0;
       transition: opacity 0.4s ease;
       animation: rotateBorder 3s linear infinite paused;
-      pointer-events: none; /* FIX: Prevent blocking input clicks */
+      pointer-events: none;
+      /* FIX: Prevent blocking input clicks */
     }
+
     .card:hover::before {
       opacity: 1;
       animation-play-state: running;
     }
+
     @property --angle {
       syntax: '<angle>';
       inherits: false;
       initial-value: 0deg;
     }
+
     @keyframes rotateBorder {
-      to { --angle: 360deg; }
+      to {
+        --angle: 360deg;
+      }
     }
 
     /* Scan sweep on hover */
     .card::after {
       content: '';
       position: absolute;
-      left: 0; right: 0;
+      left: 0;
+      right: 0;
       top: -100%;
       height: 40%;
-      background: linear-gradient(180deg, transparent, rgba(99,179,237,0.04), transparent);
+      background: linear-gradient(180deg, transparent, rgba(99, 179, 237, 0.04), transparent);
       pointer-events: none;
       transition: none;
     }
+
     .card:hover::after {
       animation: cardScan 1s ease forwards;
     }
+
     @keyframes cardScan {
-      from { top: -40%; }
-      to   { top: 130%; }
+      from {
+        top: -40%;
+      }
+
+      to {
+        top: 130%;
+      }
     }
 
     .card:hover {
       border-color: var(--border-glow);
-      box-shadow: 0 12px 50px rgba(99,179,237,0.14), 0 0 0 1px rgba(99,179,237,0.08);
+      box-shadow: 0 12px 50px rgba(99, 179, 237, 0.14), 0 0 0 1px rgba(99, 179, 237, 0.08);
       transform: translateY(-3px);
     }
-    .card + .card { margin-top: 24px; }
+
+    .card+.card {
+      margin-top: 24px;
+    }
 
     .card-header {
       display: flex;
@@ -383,22 +548,36 @@
       gap: 12px;
       margin-bottom: 24px;
     }
+
     .card-icon {
-      width: 42px; height: 42px;
+      width: 42px;
+      height: 42px;
       border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 1.2rem;
       flex-shrink: 0;
     }
-    .card-icon.blue   { background: rgba(99,179,237,0.15);  }
-    .card-icon.purple { background: rgba(159,122,234,0.15); }
-    .card-icon.teal   { background: rgba(79,209,199,0.15);  }
+
+    .card-icon.blue {
+      background: rgba(99, 179, 237, 0.15);
+    }
+
+    .card-icon.purple {
+      background: rgba(159, 122, 234, 0.15);
+    }
+
+    .card-icon.teal {
+      background: rgba(79, 209, 199, 0.15);
+    }
 
     .card-title {
       font-size: 1.05rem;
       font-weight: 700;
       letter-spacing: -0.2px;
     }
+
     .card-subtitle {
       font-size: 0.82rem;
       color: var(--text-secondary);
@@ -414,16 +593,18 @@
       gap: 12px;
       flex-wrap: wrap;
     }
+
     .wallet-address {
       font-family: 'Courier New', monospace;
       font-size: 0.85rem;
       color: var(--accent-teal);
-      background: rgba(79,209,199,0.08);
-      border: 1px solid rgba(79,209,199,0.20);
+      background: rgba(79, 209, 199, 0.08);
+      border: 1px solid rgba(79, 209, 199, 0.20);
       padding: 8px 14px;
       border-radius: var(--radius-sm);
       word-break: break-all;
     }
+
     #connect-badge {
       display: inline-flex;
       align-items: center;
@@ -431,13 +612,14 @@
       font-size: 0.78rem;
       padding: 5px 12px;
       border-radius: 20px;
-      background: rgba(255,87,87,0.10);
-      border: 1px solid rgba(255,87,87,0.25);
+      background: rgba(255, 87, 87, 0.10);
+      border: 1px solid rgba(255, 87, 87, 0.25);
       color: #fc8181;
     }
+
     #connect-badge.connected {
-      background: rgba(72,187,120,0.10);
-      border-color: rgba(72,187,120,0.25);
+      background: rgba(72, 187, 120, 0.10);
+      border-color: rgba(72, 187, 120, 0.25);
       color: #68d391;
     }
 
@@ -449,12 +631,16 @@
       grid-template-columns: 1fr 1fr;
       gap: 16px;
     }
+
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
 
     label {
       font-size: 0.82rem;
@@ -463,8 +649,9 @@
       letter-spacing: 0.3px;
     }
 
-    input, textarea {
-      background: rgba(255,255,255,0.05);
+    input,
+    textarea {
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 12px 16px;
@@ -476,12 +663,21 @@
       width: 100%;
       resize: vertical;
     }
-    input::placeholder, textarea::placeholder { color: var(--text-muted); }
-    input:focus, textarea:focus {
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(99,179,237,0.12);
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--text-muted);
     }
-    textarea { min-height: 110px; }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.12);
+    }
+
+    textarea {
+      min-height: 110px;
+    }
 
     /* ============================================================
        BUTTONS
@@ -509,42 +705,61 @@
       background: linear-gradient(135deg, #5a67d8, #9f7aea, #63b3ed, #5a67d8);
       background-size: 300% 300%;
       color: #fff;
-      box-shadow: 0 4px 20px rgba(90,103,216,0.40);
+      box-shadow: 0 4px 20px rgba(90, 103, 216, 0.40);
       animation: btnGradient 4s ease infinite;
     }
+
     @keyframes btnGradient {
-      0%,100% { background-position: 0% 50%; }
-      50%      { background-position: 100% 50%; }
+
+      0%,
+      100% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
     }
+
     .btn-primary::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
       transform: translateX(-100%);
       transition: transform 0.5s ease;
     }
-    .btn-primary:hover::after  { transform: translateX(100%); }
+
+    .btn-primary:hover::after {
+      transform: translateX(100%);
+    }
+
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 36px rgba(90,103,216,0.55);
+      box-shadow: 0 10px 36px rgba(90, 103, 216, 0.55);
     }
-    .btn-primary:active  { transform: translateY(0); }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
     .btn-primary:disabled {
       opacity: 0.45;
       cursor: not-allowed;
       transform: none;
       animation: none;
     }
+
     .btn-outline {
       background: transparent;
       border: 1px solid var(--border-glow);
       color: var(--accent-blue);
     }
+
     .btn-outline:hover {
-      background: rgba(99,179,237,0.08);
+      background: rgba(99, 179, 237, 0.08);
       transform: translateY(-1px);
-      box-shadow: 0 0 16px rgba(99,179,237,0.20);
+      box-shadow: 0 0 16px rgba(99, 179, 237, 0.20);
     }
 
     /* ============================================================
@@ -554,9 +769,17 @@
       display: none;
       animation: fadeSlideIn 0.5s ease forwards;
     }
+
     @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0);    }
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .verdict-box {
@@ -564,9 +787,21 @@
       padding: 20px 24px;
       border-left: 4px solid;
     }
-    .verdict-box.win    { background: rgba(72,187,120,0.08);  border-color: #68d391; }
-    .verdict-box.lose   { background: rgba(252,129,129,0.08); border-color: #fc8181; }
-    .verdict-box.draw   { background: rgba(246,224,94,0.08);  border-color: #f6e05e; }
+
+    .verdict-box.win {
+      background: rgba(72, 187, 120, 0.08);
+      border-color: #68d391;
+    }
+
+    .verdict-box.lose {
+      background: rgba(252, 129, 129, 0.08);
+      border-color: #fc8181;
+    }
+
+    .verdict-box.draw {
+      background: rgba(246, 224, 94, 0.08);
+      border-color: #f6e05e;
+    }
 
     .verdict-label {
       font-size: 0.75rem;
@@ -576,11 +811,13 @@
       margin-bottom: 8px;
       opacity: 0.7;
     }
+
     .verdict-outcome {
       font-size: 1.25rem;
       font-weight: 800;
       margin-bottom: 10px;
     }
+
     .verdict-reasoning {
       font-size: 0.9rem;
       color: var(--text-secondary);
@@ -602,10 +839,19 @@
       transition: border-color var(--transition);
       margin-bottom: 10px;
     }
-    .dispute-item:hover { border-color: var(--border-glow); }
-    .dispute-item:last-child { margin-bottom: 0; }
 
-    .dispute-meta { flex: 1; }
+    .dispute-item:hover {
+      border-color: var(--border-glow);
+    }
+
+    .dispute-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .dispute-meta {
+      flex: 1;
+    }
+
     .dispute-id {
       font-size: 0.72rem;
       font-weight: 700;
@@ -613,11 +859,13 @@
       letter-spacing: 0.5px;
       margin-bottom: 4px;
     }
+
     .dispute-parties {
       font-size: 0.88rem;
       font-weight: 600;
       margin-bottom: 4px;
     }
+
     .dispute-evidence {
       font-size: 0.78rem;
       color: var(--text-secondary);
@@ -636,8 +884,18 @@
       letter-spacing: 0.4px;
       flex-shrink: 0;
     }
-    .status-pending  { background: rgba(246,173,85,0.12);  color: #f6ad55; border: 1px solid rgba(246,173,85,0.25); }
-    .status-resolved { background: rgba(72,187,120,0.12);  color: #68d391; border: 1px solid rgba(72,187,120,0.25); }
+
+    .status-pending {
+      background: rgba(246, 173, 85, 0.12);
+      color: #f6ad55;
+      border: 1px solid rgba(246, 173, 85, 0.25);
+    }
+
+    .status-resolved {
+      background: rgba(72, 187, 120, 0.12);
+      color: #68d391;
+      border: 1px solid rgba(72, 187, 120, 0.25);
+    }
 
     .empty-state {
       text-align: center;
@@ -645,7 +903,12 @@
       color: var(--text-muted);
       font-size: 0.9rem;
     }
-    .empty-state span { font-size: 2rem; display: block; margin-bottom: 10px; }
+
+    .empty-state span {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 10px;
+    }
 
     /* ============================================================
        HOW IT WORKS
@@ -656,6 +919,7 @@
       gap: 16px;
       margin-top: 8px;
     }
+
     .step {
       background: var(--bg-surface);
       border: 1px solid var(--border);
@@ -666,54 +930,109 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     .step.step-visible {
       animation: stepReveal 0.5s ease forwards;
     }
-    .step:nth-child(1).step-visible { animation-delay: 0.05s; }
-    .step:nth-child(2).step-visible { animation-delay: 0.15s; }
-    .step:nth-child(3).step-visible { animation-delay: 0.25s; }
-    .step:nth-child(4).step-visible { animation-delay: 0.35s; }
-    @keyframes stepReveal {
-      to { opacity: 1; transform: translateY(0); }
+
+    .step:nth-child(1).step-visible {
+      animation-delay: 0.05s;
     }
+
+    .step:nth-child(2).step-visible {
+      animation-delay: 0.15s;
+    }
+
+    .step:nth-child(3).step-visible {
+      animation-delay: 0.25s;
+    }
+
+    .step:nth-child(4).step-visible {
+      animation-delay: 0.35s;
+    }
+
+    @keyframes stepReveal {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .step:hover {
       border-color: var(--border-glow);
       transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(99,179,237,0.12);
+      box-shadow: 0 10px 30px rgba(99, 179, 237, 0.12);
     }
+
     .step-num {
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background: var(--gradient-btn);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.85rem;
       font-weight: 700;
       margin: 0 auto 12px;
-      box-shadow: 0 2px 12px rgba(90,103,216,0.5);
+      box-shadow: 0 2px 12px rgba(90, 103, 216, 0.5);
       animation: stepNumPulse 3s ease-in-out infinite;
     }
-    .step:nth-child(2) .step-num { animation-delay: 0.75s; }
-    .step:nth-child(3) .step-num { animation-delay: 1.5s; }
-    .step:nth-child(4) .step-num { animation-delay: 2.25s; }
-    @keyframes stepNumPulse {
-      0%,100% { box-shadow: 0 2px 12px rgba(90,103,216,0.5); }
-      50%      { box-shadow: 0 2px 22px rgba(159,122,234,0.8), 0 0 0 5px rgba(159,122,234,0.08); }
+
+    .step:nth-child(2) .step-num {
+      animation-delay: 0.75s;
     }
-    .step-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; }
-    .step-desc  { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; }
+
+    .step:nth-child(3) .step-num {
+      animation-delay: 1.5s;
+    }
+
+    .step:nth-child(4) .step-num {
+      animation-delay: 2.25s;
+    }
+
+    @keyframes stepNumPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 2px 12px rgba(90, 103, 216, 0.5);
+      }
+
+      50% {
+        box-shadow: 0 2px 22px rgba(159, 122, 234, 0.8), 0 0 0 5px rgba(159, 122, 234, 0.08);
+      }
+    }
+
+    .step-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .step-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
 
     /* ============================================================
        SPINNER
     ============================================================ */
     .spinner {
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-top-color: #fff;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       display: none;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     /* ============================================================
        GENLAYER LIFECYCLE PANEL
@@ -723,35 +1042,40 @@
       display: none;
       margin-top: 24px;
       border-radius: var(--radius-sm);
-      background: rgba(10,22,40,0.85);
-      border: 1px solid rgba(99,179,237,0.20);
+      background: rgba(10, 22, 40, 0.85);
+      border: 1px solid rgba(99, 179, 237, 0.20);
       overflow: hidden;
     }
+
     .lifecycle-header {
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 12px 18px;
-      background: rgba(99,179,237,0.06);
-      border-bottom: 1px solid rgba(99,179,237,0.12);
+      background: rgba(99, 179, 237, 0.06);
+      border-bottom: 1px solid rgba(99, 179, 237, 0.12);
       font-size: 0.78rem;
       font-weight: 700;
       letter-spacing: 0.6px;
       text-transform: uppercase;
       color: var(--accent-blue);
     }
+
     .lifecycle-dot {
-      width: 8px; height: 8px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--accent-blue);
       animation: pulse 1.4s ease-in-out infinite;
     }
+
     .lifecycle-stages {
       padding: 14px 18px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
+
     .lc-stage {
       display: flex;
       align-items: flex-start;
@@ -760,27 +1084,59 @@
       opacity: 0.25;
       transition: opacity 0.4s ease;
     }
-    .lc-stage.active  { opacity: 1; }
-    .lc-stage.done    { opacity: 0.6; }
+
+    .lc-stage.active {
+      opacity: 1;
+    }
+
+    .lc-stage.done {
+      opacity: 0.6;
+    }
+
     .lc-icon {
-      width: 22px; height: 22px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.7rem;
       flex-shrink: 0;
       margin-top: 1px;
     }
-    .lc-icon.waiting  { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
+
+    .lc-icon.waiting {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
     .lc-icon.spinning {
-      border: 2px solid rgba(99,179,237,0.3);
+      border: 2px solid rgba(99, 179, 237, 0.3);
       border-top-color: var(--accent-blue);
       animation: spin 0.8s linear infinite;
       background: transparent;
     }
-    .lc-icon.done     { background: rgba(72,187,120,0.15); border: 1px solid rgba(72,187,120,0.30); color: #68d391; }
-    .lc-text { line-height: 1.5; }
-    .lc-title { font-weight: 600; color: var(--text-primary); }
-    .lc-detail { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+
+    .lc-icon.done {
+      background: rgba(72, 187, 120, 0.15);
+      border: 1px solid rgba(72, 187, 120, 0.30);
+      color: #68d391;
+    }
+
+    .lc-text {
+      line-height: 1.5;
+    }
+
+    .lc-title {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .lc-detail {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
 
     /* ============================================================
        TOAST
@@ -797,13 +1153,26 @@
       z-index: 9999;
       opacity: 0;
       transform: translateY(12px);
-      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       pointer-events: none;
     }
-    #toast.show  { opacity: 1; transform: translateY(0); }
-    #toast.success { background: linear-gradient(135deg, #48bb78, #38a169); }
-    #toast.error   { background: linear-gradient(135deg, #fc8181, #e53e3e); }
-    #toast.info    { background: linear-gradient(135deg, #5a67d8, #9f7aea); }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #toast.success {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+    }
+
+    #toast.error {
+      background: linear-gradient(135deg, #fc8181, #e53e3e);
+    }
+
+    #toast.info {
+      background: linear-gradient(135deg, #5a67d8, #9f7aea);
+    }
 
     /* ============================================================
        FOOTER
@@ -817,22 +1186,49 @@
       z-index: 1;
       border-top: 1px solid var(--border);
     }
-    footer a { color: var(--accent-blue); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
+
+    footer a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
 
     /* ============================================================
        RESPONSIVE
     ============================================================ */
     @media (max-width: 600px) {
-      nav { padding: 14px 16px; }
-      .hero { padding: 52px 8px 40px; }
-      .form-grid { grid-template-columns: 1fr; }
-      .hero-stats { gap: 24px; }
-      .card { padding: 22px 18px; }
-      #toast { right: 16px; left: 16px; text-align: center; }
+      nav {
+        padding: 14px 16px;
+      }
+
+      .hero {
+        padding: 52px 8px 40px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-stats {
+        gap: 24px;
+      }
+
+      .card {
+        padding: 22px 18px;
+      }
+
+      #toast {
+        right: 16px;
+        left: 16px;
+        text-align: center;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <!-- Particle canvas -->
@@ -872,9 +1268,18 @@
       transparent, tamper-proof, AI-generated verdicts — on-chain.
     </p>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total Disputes</div></div>
-      <div class="stat"><div class="stat-value" id="stat-resolved">0</div><div class="stat-label">Resolved</div></div>
-      <div class="stat"><div class="stat-value">100%</div><div class="stat-label">On-Chain</div></div>
+      <div class="stat">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Total Disputes</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-resolved">0</div>
+        <div class="stat-label">Resolved</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">On-Chain</div>
+      </div>
     </div>
   </header>
 
@@ -910,23 +1315,21 @@
           <!-- Party A maps to the `party_a` parameter of submit_dispute() -->
           <div class="form-group">
             <label for="party-a">Party A — Claimant</label>
-            <input type="text" id="party-a" name="partyA"
-                   placeholder="Name, address, or identifier…"
-                   required aria-required="true" autocomplete="off" />
+            <input type="text" id="party-a" name="partyA" placeholder="Name, address, or identifier…" required
+              aria-required="true" autocomplete="off" />
           </div>
           <!-- Party B maps to the `party_b` parameter of submit_dispute() -->
           <div class="form-group">
             <label for="party-b">Party B — Respondent</label>
-            <input type="text" id="party-b" name="partyB"
-                   placeholder="Name, address, or identifier…"
-                   required aria-required="true" autocomplete="off" />
+            <input type="text" id="party-b" name="partyB" placeholder="Name, address, or identifier…" required
+              aria-required="true" autocomplete="off" />
           </div>
           <!-- evidence maps to the `evidence` parameter of submit_dispute() -->
           <div class="form-group full">
             <label for="evidence">Raw Evidence</label>
             <textarea id="evidence" name="evidence" rows="4"
-                      placeholder="Describe the dispute in full — who owes what, what happened, any supporting facts…"
-                      required aria-required="true"></textarea>
+              placeholder="Describe the dispute in full — who owes what, what happened, any supporting facts…" required
+              aria-required="true"></textarea>
           </div>
         </div>
         <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
@@ -966,7 +1369,8 @@
             <div class="lc-icon waiting" id="lc-3-icon"></div>
             <div class="lc-text">
               <div class="lc-title">Stage 3 — Equivalence Principle Validation</div>
-              <div class="lc-detail" id="lc-3-detail">Running gl.eq_principle.prompt_non_comparative() across semantic LLM nodes…</div>
+              <div class="lc-detail" id="lc-3-detail">Running gl.eq_principle.prompt_non_comparative() across semantic
+                LLM nodes…</div>
             </div>
           </div>
         </div>
@@ -1063,7 +1467,8 @@
 
   <!-- ── FOOTER ─────────────────────────────────────────── -->
   <footer>
-    <p>Built on <a href="https://genlayer.com" target="_blank" rel="noopener">GenLayer</a> · VerdictAI &copy; 2026 · Decentralized Dispute Resolution</p>
+    <p>Built on <a href="https://genlayer.com" target="_blank" rel="noopener">GenLayer</a> · VerdictAI &copy; 2026 ·
+      Decentralized Dispute Resolution</p>
   </footer>
 
   <!-- ── TOAST ──────────────────────────────────────────── -->
@@ -1078,7 +1483,7 @@
     ============================================================ */
     (function () {
       const canvas = document.getElementById('particle-canvas');
-      const ctx    = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d');
       let W, H, particles;
 
       const COLORS = [
@@ -1089,19 +1494,19 @@
       ];
 
       function resize() {
-        W = canvas.width  = window.innerWidth;
+        W = canvas.width = window.innerWidth;
         H = canvas.height = window.innerHeight;
       }
 
       function mkParticle() {
         return {
-          x:    Math.random() * W,
-          y:    Math.random() * H,
-          r:    Math.random() * 1.6 + 0.4,
-          vx:   (Math.random() - 0.5) * 0.35,
-          vy:   (Math.random() - 0.5) * 0.35,
-          col:  COLORS[Math.floor(Math.random() * COLORS.length)],
-          a:    Math.random() * 0.5 + 0.15,
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: Math.random() * 1.6 + 0.4,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          col: COLORS[Math.floor(Math.random() * COLORS.length)],
+          a: Math.random() * 0.5 + 0.15,
         };
       }
 
@@ -1130,7 +1535,7 @@
           for (let j = i + 1; j < particles.length; j++) {
             const dx = particles[i].x - particles[j].x;
             const dy = particles[i].y - particles[j].y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
+            const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < 120) {
               ctx.beginPath();
               ctx.moveTo(particles[i].x, particles[i].y);
@@ -1181,11 +1586,11 @@
     //    dispute_count: int            → state.disputeCount
     // ══════════════════════════════════════════════════════
     const state = {
-      connected:    false,
-      address:      null,
-      disputes:     new Map(),   // dispute_id → verdict string (mirrors TreeMap)
+      connected: false,
+      address: null,
+      disputes: new Map(),   // dispute_id → verdict string (mirrors TreeMap)
       disputeCount: 0,           // mirrors self.dispute_count on contract
-      list:         [],          // ordered list for the disputes panel
+      list: [],          // ordered list for the disputes panel
     };
 
     // ──────────────────────────────────────────────────────
@@ -1222,25 +1627,25 @@
     // ──────────────────────────────────────────────────────
     const $ = id => document.getElementById(id);
     const els = {
-      connectBtn:       $('btn-connect'),
-      connectBadge:     $('connect-badge'),
-      walletStatus:     $('wallet-status'),
-      disputeForm:      $('dispute-form'),
-      submitBtn:        $('btn-submit'),
-      submitSpinner:    $('submit-spinner'),
-      submitLabel:      $('submit-label'),
-      clearBtn:         $('btn-clear'),
-      lifecyclePanel:   $('lifecycle-panel'),
-      verdictResult:    $('verdict-result'),
-      verdictBox:       $('verdict-box'),
-      disputeIdBadge:   $('dispute-id-badge'),
-      verdictOutcome:   $('verdict-outcome'),
+      connectBtn: $('btn-connect'),
+      connectBadge: $('connect-badge'),
+      walletStatus: $('wallet-status'),
+      disputeForm: $('dispute-form'),
+      submitBtn: $('btn-submit'),
+      submitSpinner: $('submit-spinner'),
+      submitLabel: $('submit-label'),
+      clearBtn: $('btn-clear'),
+      lifecyclePanel: $('lifecycle-panel'),
+      verdictResult: $('verdict-result'),
+      verdictBox: $('verdict-box'),
+      disputeIdBadge: $('dispute-id-badge'),
+      verdictOutcome: $('verdict-outcome'),
       verdictReasoning: $('verdict-reasoning'),
-      rawState:         $('raw-state'),
-      disputesList:     $('disputes-list'),
-      statTotal:        $('stat-total'),
-      statResolved:     $('stat-resolved'),
-      toast:            $('toast'),
+      rawState: $('raw-state'),
+      disputesList: $('disputes-list'),
+      statTotal: $('stat-total'),
+      statResolved: $('stat-resolved'),
+      toast: $('toast'),
     };
 
     // ──────────────────────────────────────────────────────
@@ -1287,8 +1692,8 @@
 
     function setConnectedState(address) {
       state.connected = true;
-      state.address   = address;
-      const short = `${address.slice(0,6)}…${address.slice(-4)}`;
+      state.address = address;
+      const short = `${address.slice(0, 6)}…${address.slice(-4)}`;
       els.connectBadge.textContent = '● Connected';
       els.connectBadge.classList.add('connected');
       // Show wallet address pill
@@ -1308,7 +1713,7 @@
     if (window.ethereum) {
       window.ethereum.request({ method: 'eth_accounts' })
         .then(accs => { if (accs.length > 0) setConnectedState(accs[0]); })
-        .catch(() => {});
+        .catch(() => { });
       window.ethereum.on('accountsChanged', accs => {
         if (accs.length > 0) setConnectedState(accs[0]);
         else { state.connected = false; state.address = null; }
@@ -1324,9 +1729,9 @@
     function generateDisputeId() {
       // Build a 4-character random hex suffix for uniqueness
       const hex = Math.floor(Math.random() * 0xFFFF)
-                      .toString(16)
-                      .toUpperCase()
-                      .padStart(4, '0');
+        .toString(16)
+        .toUpperCase()
+        .padStart(4, '0');
       return `DISPUTE-${hex}`;
     }
 
@@ -1336,8 +1741,8 @@
     //  Icon states: 'waiting' | 'spinning' | 'done'
     // ══════════════════════════════════════════════════════
     function setStage(n, iconState, detailText) {
-      const stage  = $(`lc-${n}`);
-      const icon   = $(`lc-${n}-icon`);
+      const stage = $(`lc-${n}`);
+      const icon = $(`lc-${n}-icon`);
       const detail = $(`lc-${n}-detail`);
 
       // Activate the row so it becomes fully visible
@@ -1362,10 +1767,10 @@
 
     function resetLifecycle() {
       [1, 2, 3].forEach(n => {
-        const stage  = $(`lc-${n}`);
-        const icon   = $(`lc-${n}-icon`);
-        stage.className  = 'lc-stage';  // removes active / done
-        icon.className   = 'lc-icon waiting';
+        const stage = $(`lc-${n}`);
+        const icon = $(`lc-${n}-icon`);
+        stage.className = 'lc-stage';  // removes active / done
+        icon.className = 'lc-icon waiting';
         icon.textContent = '';
       });
       // Reset detail text back to defaults
@@ -1416,9 +1821,9 @@
       }
 
       // ── 1. Read and validate form inputs ───────────────────────
-      const partyA    = $('party-a').value.trim();
-      const partyB    = $('party-b').value.trim();
-      const evidence  = $('evidence').value.trim();
+      const partyA = $('party-a').value.trim();
+      const partyB = $('party-b').value.trim();
+      const evidence = $('evidence').value.trim();
 
       if (!partyA || !partyB || !evidence) {
         showToast('Please fill in all fields.', 'error');
@@ -1436,7 +1841,7 @@
       setLoadingState(true);
       resetLifecycle();
       els.lifecyclePanel.style.display = 'block';
-      els.verdictResult.style.display  = 'none';
+      els.verdictResult.style.display = 'none';
       els.lifecyclePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
       try {
@@ -1463,7 +1868,7 @@
 
         // ── 4. Produce the mock contract return value ───────────
         const verdictText = buildMockVerdict(partyA, partyB, evidence);
-        const txHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+        const txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
 
         // ── 5. Update local state & persist ────────────────────────
         state.disputes.set(disputeId, verdictText);
@@ -1496,7 +1901,7 @@
     // Clear form and reset all panels
     els.clearBtn.addEventListener('click', () => {
       els.disputeForm.reset();
-      els.verdictResult.style.display  = 'none';
+      els.verdictResult.style.display = 'none';
       els.lifecyclePanel.style.display = 'none';
       resetLifecycle();
     });
@@ -1507,9 +1912,9 @@
 
     /** Lock/unlock the submit button while the pipeline is running */
     function setLoadingState(loading) {
-      els.submitBtn.disabled              = loading;
-      els.submitSpinner.style.display     = loading ? 'block' : 'none';
-      els.submitLabel.textContent         = loading ? 'Processing…' : '🚀 Submit Dispute';
+      els.submitBtn.disabled = loading;
+      els.submitSpinner.style.display = loading ? 'block' : 'none';
+      els.submitLabel.textContent = loading ? 'Processing…' : '🚀 Submit Dispute';
     }
 
     /**
@@ -1531,23 +1936,23 @@
       `;
 
       // Verdict outcome header
-      els.verdictBox.className       = `verdict-box ${cls}`;
+      els.verdictBox.className = `verdict-box ${cls}`;
       els.verdictOutcome.textContent =
-        cls === 'win'  ? `⚖️ Ruling in favour of Party A — ${partyA}` :
-        cls === 'lose' ? `⚖️ Ruling in favour of Party B — ${partyB}` :
-                         '⚖️ Inconclusive — Further evidence required';
+        cls === 'win' ? `⚖️ Ruling in favour of Party A — ${partyA}` :
+          cls === 'lose' ? `⚖️ Ruling in favour of Party B — ${partyB}` :
+            '⚖️ Inconclusive — Further evidence required';
 
       // Full verdict paragraph (the raw string stored on-chain)
       els.verdictReasoning.textContent = verdictText;
 
       // Raw state mirror — what get_verdict(dispute_id) would return
       els.rawState.textContent = JSON.stringify({
-        method:     'get_verdict',
-        args:       [disputeId],
-        returns:    verdictText,
-        contract:   'VerdictAI',
+        method: 'get_verdict',
+        args: [disputeId],
+        returns: verdictText,
+        contract: 'VerdictAI',
         transaction: txHash,
-        state_key:  `disputes["${disputeId}"]`,
+        state_key: `disputes["${disputeId}"]`,
       }, null, 2);
 
       els.verdictResult.style.display = 'block';
@@ -1556,7 +1961,7 @@
 
     /** Keep hero metric counters in sync with state */
     function updateStats() {
-      animateCounter(els.statTotal,    state.disputeCount);
+      animateCounter(els.statTotal, state.disputeCount);
       animateCounter(els.statResolved, state.disputeCount);  // all resolved via consensus
     }
 
@@ -1639,7 +2044,7 @@
     // ──────────────────────────────────────────────────────
     function animateCounter(el, target) {
       let current = parseInt(el.textContent, 10) || 0;
-      const step  = Math.max(1, Math.ceil(Math.abs(target - current) / 20));
+      const step = Math.max(1, Math.ceil(Math.abs(target - current) / 20));
       const timer = setInterval(() => {
         if (current < target) {
           current = Math.min(current + step, target);
@@ -1654,5 +2059,8 @@
     // Initialize state on load
     window.addEventListener('DOMContentLoaded', loadState);
   </script>
+  <script type="module" src="./app.js"></script>
+
 </body>
+
 </html>
