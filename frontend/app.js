@@ -1,40 +1,34 @@
-import { client, VERDICT_CONTRACT_ADDRESS } from "./genlayerclient.js";
+/**
+ * app.js — ES Module bridge
+ *
+ * Loaded as <script type="module">. Imports the genlayer-js SDK
+ * and exposes the contract interaction functions on window.GenLayerBridge
+ * so the non-module inline <script> in index.html can call them.
+ */
+import {
+    initWriteClient,
+    submitDisputeToChain,
+    getVerdictFromChain,
+    getTotalCasesFromChain,
+    VERDICT_CONTRACT_ADDRESS,
+} from "./genlayerclient.js";
 
-// Wait for the DOM to load
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("dispute-form");
-    const statusDiv = document.getElementById("status-message");
+window.GenLayerBridge = {
+    // Called by the wallet connect handler in index.html once
+    // the user's MetaMask account address is known.
+    initWriteClient,
 
-    if (form) {
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault(); // Stop page from reloading
+    // Core contract interactions
+    submitDisputeToChain,
+    getVerdictFromChain,
+    getTotalCasesFromChain,
 
-            // Get values from the form inputs
-            const disputeId = document.getElementById("dispute-id").value;
-            const partyA = document.getElementById("party-a").value;
-            const partyB = document.getElementById("party-b").value;
-            const evidence = document.getElementById("evidence").value;
+    CONTRACT_ADDRESS: VERDICT_CONTRACT_ADDRESS,
+};
 
-            statusDiv.className = "status info";
-            statusDiv.innerText = "Submitting dispute to GenLayer Intelligent Consensus...";
-
-            try {
-                // Execute the contract call
-                const txHash = await client.writeContract({
-                    address: VERDICT_CONTRACT_ADDRESS,
-                    functionName: "submit_dispute",
-                    args: [disputeId, partyA, partyB, evidence],
-                    value: BigInt(0),
-                });
-
-                statusDiv.className = "status success";
-                statusDiv.innerText = `Dispute submitted successfully! Tx Hash: ${txHash}`;
-                form.reset(); // Clear form fields
-            } catch (error) {
-                console.error("Transaction failed:", error);
-                statusDiv.className = "status error";
-                statusDiv.innerText = `Submission failed: ${error.message || error}`;
-            }
-        });
-    }
-});
+// Signal to the inline script that the SDK bridge is ready
+window.dispatchEvent(new CustomEvent("genlayer:ready"));
+console.log(
+    "[VerdictAI] GenLayer SDK bridge loaded. Contract:",
+    VERDICT_CONTRACT_ADDRESS
+);

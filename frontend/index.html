@@ -1419,7 +1419,7 @@
         <div class="card-icon teal">📋</div>
         <div>
           <div class="card-title" id="disputes-heading">Active Disputes</div>
-          <div class="card-subtitle">All submitted disputes in this session</div>
+          <div class="card-subtitle">Disputes recorded on the VerdictAI smart contract</div>
         </div>
       </div>
       <div id="disputes-list">
@@ -1580,47 +1580,16 @@
     })();
 
     // ══════════════════════════════════════════════════════
-    //  SESSION STATE
-    //  Mirrors the on-chain storage declared in VerdictAI:
-    //    disputes: TreeMap[str, str]   → JS Map<string, string>
-    //    dispute_count: int            → state.disputeCount
+    //  APP STATE
+    //  Connected wallet + local list of disputes submitted
+    //  this session (for the disputes panel). On-chain truth
+    //  is always fetched via GenLayerBridge.
     // ══════════════════════════════════════════════════════
     const state = {
       connected: false,
       address: null,
-      disputes: new Map(),   // dispute_id → verdict string (mirrors TreeMap)
-      disputeCount: 0,           // mirrors self.dispute_count on contract
-      list: [],          // ordered list for the disputes panel
+      list: [],          // local session log for the disputes panel
     };
-
-    // ──────────────────────────────────────────────────────
-    // PERSISTENCE HELPERS
-    // ──────────────────────────────────────────────────────
-    function saveState() {
-      const data = {
-        disputeCount: state.disputeCount,
-        list: state.list,
-        // Map is not JSON serializable, so we convert it
-        disputes: Array.from(state.disputes.entries())
-      };
-      localStorage.setItem('verdict_ai_state', JSON.stringify(data));
-    }
-
-    function loadState() {
-      const saved = localStorage.getItem('verdict_ai_state');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          state.disputeCount = parsed.disputeCount || 0;
-          state.list = parsed.list || [];
-          state.disputes = new Map(parsed.disputes || []);
-          renderDisputesList();
-          updateStats();
-        } catch (e) {
-          console.error("Failed to load state", e);
-        }
-      }
-    }
 
     // ──────────────────────────────────────────────────────
     // ELEMENT REFS
@@ -1649,6 +1618,20 @@
     };
 
     // ──────────────────────────────────────────────────────
+    // GENLAYER SDK BRIDGE
+    // app.js (type="module") loads genlayer-js and exposes
+    // window.GenLayerBridge once the SDK is ready.
+    // ──────────────────────────────────────────────────────
+    let bridge = null;
+
+    function waitForBridge() {
+      return new Promise((resolve) => {
+        if (window.GenLayerBridge) { resolve(window.GenLayerBridge); return; }
+        window.addEventListener('genlayer:ready', () => resolve(window.GenLayerBridge), { once: true });
+      });
+    }
+
+    // ──────────────────────────────────────────────────────
     // TOAST UTILITY
     // ──────────────────────────────────────────────────────
     let toastTimer = null;
@@ -1657,29 +1640,20 @@
       t.textContent = msg;
       t.className = `show ${type}`;
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3400);
+      toastTimer = setTimeout(() => { t.classList.remove('show'); }, 4500);
     }
 
     // ──────────────────────────────────────────────────────
     // WALLET CONNECT (MetaMask / EIP-1193)
-    // In production, genlayer-js handles wallet auth:
-    //   import { createClient } from 'genlayer-js';
-    //   const client = createClient({ network: 'localnet' });
-    //   await client.connect();   ← replaces the MetaMask flow below
     // ──────────────────────────────────────────────────────
     els.connectBtn.addEventListener('click', async () => {
       if (!window.ethereum) {
-        showToast('MetaMask not detected. Enabling Mock Session…', 'info');
-        // Simulated delay for "connecting"
-        els.connectBtn.disabled = true;
-        els.connectBtn.textContent = 'Connecting…';
-        await delay(1000);
-        const mockAddr = '0xdemo' + Math.random().toString(16).slice(2, 10) + '…' + Math.random().toString(16).slice(2, 6);
-        setConnectedState(mockAddr + ' (Mock)');
+        showToast('MetaMask not detected. Please install MetaMask to interact with the contract.', 'error');
         return;
       }
       try {
         els.connectBtn.disabled = true;
+        els.connectBtn.textContent = 'Connecting…';
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         if (accounts.length === 0) throw new Error('No accounts returned.');
         setConnectedState(accounts[0]);
@@ -1696,7 +1670,6 @@
       const short = `${address.slice(0, 6)}…${address.slice(-4)}`;
       els.connectBadge.textContent = '● Connected';
       els.connectBadge.classList.add('connected');
-      // Show wallet address pill
       const addrEl = document.createElement('span');
       addrEl.className = 'wallet-address';
       addrEl.textContent = address;
@@ -1707,6 +1680,15 @@
       els.connectBtn.textContent = '✓ Connected';
       els.connectBtn.disabled = true;
       showToast(`Wallet connected: ${short}`, 'success');
+      // Initialize the write client with the user's account + MetaMask provider
+      // so writeContract() can sign transactions via MetaMask.
+      if (window.GenLayerBridge) {
+        window.GenLayerBridge.initWriteClient(address);
+      } else {
+        window.addEventListener('genlayer:ready', () => {
+          window.GenLayerBridge.initWriteClient(address);
+        }, { once: true });
+      }
     }
 
     // Auto-reconnect on load if MetaMask session is already active
@@ -1722,43 +1704,27 @@
 
     // ══════════════════════════════════════════════════════
     //  DISPUTE ID GENERATOR
-    //  Produces a unique ID such as "DISPUTE-A3F7" that maps
-    //  directly to the `dispute_id` parameter in:
+    //  Maps to the `dispute_id` parameter in:
     //    submit_dispute(dispute_id, party_a, party_b, evidence)
     // ══════════════════════════════════════════════════════
     function generateDisputeId() {
-      // Build a 4-character random hex suffix for uniqueness
       const hex = Math.floor(Math.random() * 0xFFFF)
-        .toString(16)
-        .toUpperCase()
-        .padStart(4, '0');
+        .toString(16).toUpperCase().padStart(4, '0');
       return `DISPUTE-${hex}`;
     }
 
     // ══════════════════════════════════════════════════════
     //  LIFECYCLE STAGE HELPER
-    //  Controls the visual state of each lc-stage row.
-    //  Icon states: 'waiting' | 'spinning' | 'done'
     // ══════════════════════════════════════════════════════
     function setStage(n, iconState, detailText) {
       const stage = $(`lc-${n}`);
       const icon = $(`lc-${n}-icon`);
       const detail = $(`lc-${n}-detail`);
-
-      // Activate the row so it becomes fully visible
       stage.classList.remove('done');
       stage.classList.add('active');
-
-      // Swap CSS class on the icon bubble
       icon.className = `lc-icon ${iconState}`;
-
-      // Show a checkmark inside the bubble when done
       icon.textContent = iconState === 'done' ? '✓' : '';
-
-      // Optionally update the subtitle detail text
       if (detailText) detail.textContent = detailText;
-
-      // If the stage is completed, transition it to dimmed-done state
       if (iconState === 'done') {
         stage.classList.remove('active');
         stage.classList.add('done');
@@ -1769,58 +1735,40 @@
       [1, 2, 3].forEach(n => {
         const stage = $(`lc-${n}`);
         const icon = $(`lc-${n}-icon`);
-        stage.className = 'lc-stage';  // removes active / done
+        stage.className = 'lc-stage';
         icon.className = 'lc-icon waiting';
         icon.textContent = '';
       });
-      // Reset detail text back to defaults
-      $('lc-1-detail').textContent = 'Initialising SDK client and resolving RPC endpoint…';
-      $('lc-2-detail').textContent = 'Leader node evaluating dispute via gl.nondet.exec_prompt()…';
-      $('lc-3-detail').textContent = 'Running gl.eq_principle.prompt_non_comparative() across semantic LLM nodes…';
+      $('lc-1-detail').textContent = 'Initialising genlayer-js SDK and resolving studionet RPC endpoint…';
+      $('lc-2-detail').textContent = 'Broadcasting writeContract() → submit_dispute() to the GenLayer network…';
+      $('lc-3-detail').textContent = 'Polling waitForTransactionReceipt() — FINALIZED status via Optimistic Democracy…';
     }
 
     // ══════════════════════════════════════════════════════
-    //  SUBMIT DISPUTE — MAIN HANDLER
+    //  SUBMIT DISPUTE — LIVE CONTRACT INTERACTION
     //
-    //  This function simulates exactly what genlayer-js does
-    //  when you call the contract's submit_dispute method:
-    //
-    //  REAL genlayer-js equivalent (for reference):
-    //  ─────────────────────────────────────────────
-    //  import { createClient } from 'genlayer-js';
-    //  const client = createClient({ network: 'localnet' });
-    //
-    //  // Write transaction — dispatches to the contract
-    //  const txHash = await client.writeContract({
-    //    address:      CONTRACT_ADDRESS,
-    //    abi:          VERDICT_AI_ABI,
-    //    functionName: 'submit_dispute',
-    //    args:         [disputeId, partyA, partyB, evidence],
-    //  });
-    //
-    //  // Wait for Optimistic Democracy consensus to finalise
-    //  const receipt = await client.waitForTransactionReceipt({ hash: txHash });
-    //
-    //  // Read back the finalized verdict from the TreeMap
-    //  const verdict = await client.readContract({
-    //    address:      CONTRACT_ADDRESS,
-    //    abi:          VERDICT_AI_ABI,
-    //    functionName: 'get_verdict',
-    //    args:         [disputeId],
-    //  });
+    //  Flow:
+    //  1. bridge.submitDisputeToChain() → writeContract()
+    //     Calls submit_dispute(dispute_id, party_a, party_b, evidence)
+    //     on VerdictAI at VERDICT_CONTRACT_ADDRESS on studionet.
+    //  2. waitForTransactionReceipt({ status: FINALIZED })
+    //     Polls until GenLayer Optimistic Democracy consensus is done.
+    //  3. bridge.getVerdictFromChain(disputeId) → readContract()
+    //     Reads back the finalized verdict from disputes[dispute_id]
+    //     in the contract's on-chain TreeMap.
+    //  4. bridge.getTotalCasesFromChain() → readContract()
+    //     Syncs the hero counter with the real dispute_count state.
     // ══════════════════════════════════════════════════════
     els.disputeForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // ── 0. Check Wallet Connection ─────────────────────────────
+      // ── 0. Guard: wallet must be connected ────────────────────
       if (!state.connected) {
         showToast('Please connect your wallet first.', 'error');
-        els.connectBtn.classList.add('pulse-once'); // Subtle nudge
-        setTimeout(() => els.connectBtn.classList.remove('pulse-once'), 1000);
         return;
       }
 
-      // ── 1. Read and validate form inputs ───────────────────────
+      // ── 1. Read and validate form inputs ─────────────────────
       const partyA = $('party-a').value.trim();
       const partyB = $('party-b').value.trim();
       const evidence = $('evidence').value.trim();
@@ -1834,10 +1782,17 @@
         return;
       }
 
-      // ── 2. Generate a unique dispute_id ────────────────────────
+      // ── 2. Make sure the SDK bridge is loaded ─────────────────
+      if (!bridge) {
+        showToast('GenLayer SDK loading — please wait a moment and try again.', 'info');
+        try { bridge = await waitForBridge(); }
+        catch { showToast('GenLayer SDK failed to load.', 'error'); return; }
+      }
+
+      // ── 3. Generate a unique dispute_id ──────────────────────
       const disputeId = generateDisputeId();
 
-      // ── 3. Lock the UI and reveal the lifecycle panel ──────────
+      // ── 4. Lock UI and show lifecycle panel ──────────────────
       setLoadingState(true);
       resetLifecycle();
       els.lifecyclePanel.style.display = 'block';
@@ -1846,33 +1801,40 @@
 
       try {
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // STAGE 1 — SDK Client Config
+        // STAGE 1 — writeContract() → submit_dispute()
+        // This stage broadcasts the real transaction to studionet.
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        setStage(1, 'spinning', 'Linking to network gateway via genlayer-js…');
-        await delay(1200);
-        setStage(1, 'done', `SDK ready · broadcast sequence initiated for ${disputeId}`);
+        setStage(1, 'spinning', `Broadcasting submit_dispute("${disputeId}", ...) to studionet…`);
+
+        const { txHash, receipt } = await bridge.submitDisputeToChain(
+          disputeId, partyA, partyB, evidence
+        );
+
+        setStage(1, 'done', `TX broadcast · hash: ${txHash.slice(0, 14)}…${txHash.slice(-6)}`);
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // STAGE 2 — Optimistic Democracy (Leader LLM)
+        // STAGE 2 — Optimistic Democracy consensus in progress
+        // waitForTransactionReceipt() was called inside Stage 1
+        // and resolved when the tx reached FINALIZED status.
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        setStage(2, 'spinning', 'Leader node computing nondet gl.nondet.exec_prompt()…');
-        await delay(1800);
-        setStage(2, 'done', 'Draft verdict proposed · propagating across validator mesh…');
+        setStage(2, 'done', `Receipt confirmed · block: ${receipt?.blockNumber ?? 'finalized'} · consensus finalized`);
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // STAGE 3 — Equivalence Principle (Verification)
+        // STAGE 3 — readContract() → get_verdict(dispute_id)
+        // Read the consensus verdict back from the on-chain TreeMap.
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        setStage(3, 'spinning', 'Validating semantic equivalence across LLM nodes…');
-        await delay(2000);
-        setStage(3, 'done', 'Consensus reached · write transaction committed to TreeMap');
+        setStage(3, 'spinning', `Calling get_verdict("${disputeId}") on-chain…`);
 
-        // ── 4. Produce the mock contract return value ───────────
-        const verdictText = buildMockVerdict(partyA, partyB, evidence);
-        const txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+        const verdictText = await bridge.getVerdictFromChain(disputeId);
 
-        // ── 5. Update local state & persist ────────────────────────
-        state.disputes.set(disputeId, verdictText);
-        state.disputeCount += 1;
+        setStage(3, 'done', `Verdict retrieved from disputes["${disputeId}"] in on-chain TreeMap`);
+
+        // ── 5. Fetch live total from contract ────────────────
+        let totalCases;
+        try { totalCases = await bridge.getTotalCasesFromChain(); }
+        catch { totalCases = null; }
+
+        // ── 6. Update local session list ─────────────────────
         state.list.push({
           disputeId,
           txHash,
@@ -1882,23 +1844,37 @@
           verdict: verdictText,
           timestamp: new Date().toLocaleString(),
         });
-        saveState();
 
-        // ── 6. Render the verdict card and raw state mirror ─────
-        showVerdictCard(disputeId, partyA, partyB, verdictText, txHash);
-        updateStats();
+        // ── 7. Render verdict, stats, disputes list ───────────
+        showVerdictCard(disputeId, partyA, partyB, verdictText, txHash, receipt);
+        if (totalCases !== null) {
+          animateCounter(els.statTotal, totalCases);
+          animateCounter(els.statResolved, totalCases);
+        }
         renderDisputesList();
-        showToast('✅ Verdict committed on-chain!', 'success');
+        showToast('✅ On-chain verdict committed by GenLayer consensus!', 'success');
         els.disputeForm.reset();
 
       } catch (err) {
-        showToast(err.message || 'Transaction failed.', 'error');
+        console.error('[VerdictAI] Contract call failed:', err);
+        showToast(`Contract error: ${err.message || String(err)}`, 'error');
+        // Reset lifecycle panel to show error state
+        [1, 2, 3].forEach(n => {
+          const stageEl = $(`lc-${n}`);
+          if (stageEl.classList.contains('active')) {
+            $(`lc-${n}-icon`).className = 'lc-icon done';
+            $(`lc-${n}-icon`).textContent = '✕';
+            $(`lc-${n}-icon`).style.background = 'rgba(252,129,129,0.15)';
+            $(`lc-${n}-icon`).style.borderColor = 'rgba(252,129,129,0.3)';
+            $(`lc-${n}-icon`).style.color = '#fc8181';
+          }
+        });
       } finally {
         setLoadingState(false);
       }
     });
 
-    // Clear form and reset all panels
+    // Clear form and reset panels
     els.clearBtn.addEventListener('click', () => {
       els.disputeForm.reset();
       els.verdictResult.style.display = 'none';
@@ -1910,59 +1886,58 @@
     // UI HELPERS
     // ──────────────────────────────────────────────────────
 
-    /** Lock/unlock the submit button while the pipeline is running */
     function setLoadingState(loading) {
       els.submitBtn.disabled = loading;
       els.submitSpinner.style.display = loading ? 'block' : 'none';
-      els.submitLabel.textContent = loading ? 'Processing…' : '🚀 Submit Dispute';
+      els.submitLabel.textContent = loading ? 'Awaiting on-chain consensus…' : '🚀 Submit Dispute';
     }
 
     /**
      * Render the final verdict card.
-     * The `verdictText` string is exactly what get_verdict(dispute_id)
-     * returns from the on-chain TreeMap.
+     * verdictText is the raw string returned by get_verdict(dispute_id)
+     * from the VerdictAI contract's on-chain TreeMap.
      */
-    function showVerdictCard(disputeId, partyA, partyB, verdictText, txHash) {
-      // Detect winner from the AI text to choose verdict-box colour class
+    function showVerdictCard(disputeId, partyA, partyB, verdictText, txHash, receipt) {
       const lower = verdictText.toLowerCase();
       let cls = 'draw';
       if (lower.includes('party a') || lower.includes(partyA.toLowerCase()) || lower.includes('claimant')) cls = 'win';
       else if (lower.includes('party b') || lower.includes(partyB.toLowerCase()) || lower.includes('respondent')) cls = 'lose';
 
-      // Show the dispute ID and simulated TX hash
       els.disputeIdBadge.innerHTML = `
-        <div style="margin-bottom:4px;">🔑 Dispute ID: <span style="color:var(--text-primary)">${disputeId}</span></div>
-        <div style="font-size:0.7rem; opacity:0.6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"># TX Hash: ${txHash || 'Pending…'}</div>
+        <div style="margin-bottom:4px;">🔑 Dispute ID: <span style="color:var(--text-primary)">${escapeHtml(disputeId)}</span></div>
+        <div style="font-size:0.7rem;opacity:0.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          🔗 TX: ${escapeHtml(txHash)}
+        </div>
+        <div style="font-size:0.7rem;opacity:0.5;margin-top:2px;">
+          Contract: ${escapeHtml(window.GenLayerBridge?.CONTRACT_ADDRESS || '')}
+        </div>
       `;
 
-      // Verdict outcome header
       els.verdictBox.className = `verdict-box ${cls}`;
       els.verdictOutcome.textContent =
-        cls === 'win' ? `⚖️ Ruling in favour of Party A — ${partyA}` :
-          cls === 'lose' ? `⚖️ Ruling in favour of Party B — ${partyB}` :
-            '⚖️ Inconclusive — Further evidence required';
+        cls === 'win'  ? `⚖️ Ruling in favour of Party A — ${partyA}` :
+        cls === 'lose' ? `⚖️ Ruling in favour of Party B — ${partyB}` :
+                         '⚖️ Inconclusive — Further evidence required';
 
-      // Full verdict paragraph (the raw string stored on-chain)
+      // The exact text returned by the GenLayer LLM consensus
       els.verdictReasoning.textContent = verdictText;
 
-      // Raw state mirror — what get_verdict(dispute_id) would return
+      // Raw on-chain state mirror
       els.rawState.textContent = JSON.stringify({
-        method: 'get_verdict',
-        args: [disputeId],
-        returns: verdictText,
-        contract: 'VerdictAI',
-        transaction: txHash,
-        state_key: `disputes["${disputeId}"]`,
+        contract:        'VerdictAI',
+        address:         window.GenLayerBridge?.CONTRACT_ADDRESS,
+        network:         'studionet',
+        method:          'get_verdict',
+        args:            [disputeId],
+        returns:         verdictText,
+        transaction:     txHash,
+        blockNumber:     receipt?.blockNumber ?? null,
+        state_key:       `disputes["${disputeId}"]`,
+        consensus:       'FINALIZED',
       }, null, 2);
 
       els.verdictResult.style.display = 'block';
       els.verdictResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    /** Keep hero metric counters in sync with state */
-    function updateStats() {
-      animateCounter(els.statTotal, state.disputeCount);
-      animateCounter(els.statResolved, state.disputeCount);  // all resolved via consensus
     }
 
     /** Re-render the Active Disputes list panel */
@@ -1974,10 +1949,8 @@
           </div>`;
         return;
       }
-      // Newest first
       els.disputesList.innerHTML = state.list
-        .slice()
-        .reverse()
+        .slice().reverse()
         .map(d => `
           <article class="dispute-item" data-id="${escapeHtml(d.disputeId)}">
             <div class="dispute-meta">
@@ -1989,44 +1962,14 @@
               </div>
               <div class="dispute-evidence">${escapeHtml(d.evidence)}</div>
             </div>
-            <span class="status-pill status-resolved">resolved</span>
+            <span class="status-pill status-resolved">on-chain</span>
           </article>`)
         .join('');
-    }
-
-    /**
-     * BUILD MOCK VERDICT
-     * Produces a realistic paragraph that mirrors what the GenLayer LLM
-     * would return from gl.nondet.exec_prompt() inside execute_arbitration().
-     * In production, this string comes directly from the contract call response.
-     */
-    function buildMockVerdict(partyA, partyB, evidence) {
-      // Pool of verdict templates mapping to GenLayer LLM outputs
-      const templates = [
-        // Party A wins
-        `Arbitration Result: VALIDATED. Following a multi-node semantic analysis of the contractual obligations and the evidence provided ("${truncate(evidence, 60)}"), the GenLayer oracle confirms that Party A (${partyA}) has fulfilled all requisite conditions. Party B (${partyB}) is found in breach of the specified agreement. The Equivalence Principle confirms a 100% consensus on this ruling.`,
-        // Party B wins
-        `Arbitration Result: DISMISSED. The claimant, Party A (${partyA}), has submitted insufficient evidence to substantiate the alleged breach. Upon independent evaluation of the facts ("${truncate(evidence, 60)}"), the validator pool concludes that the respondent, Party B (${partyB}), acted within the bounds of the protocol. Consensus finalized and committed on-chain.`,
-        // Inconclusive
-        `Arbitration Result: INCONCLUSIVE. The provided dataset ("${truncate(evidence, 60)}") contains insufficient deterministic parameters for a final ruling. Both Party A (${partyA}) and Party B (${partyB}) are advised to provide supplementary documentation. The GenLayer consensus engine has recorded a null-verdict to prevent arbitrary state transitions.`
-      ];
-      // Deterministically pick based on combined string hash so same
-      // inputs always produce the same demo outcome
-      const seed = (partyA + partyB + evidence).split('').reduce(
-        (acc, ch) => (acc * 31 + ch.charCodeAt(0)) | 0, 0
-      );
-      return templates[Math.abs(seed) % templates.length];
     }
 
     // ──────────────────────────────────────────────────────
     // UTILITIES
     // ──────────────────────────────────────────────────────
-
-    /** Promise-based delay helper used between lifecycle stages */
-    function delay(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     function truncate(str, n) {
       if (!str) return '—';
       return str.length > n ? str.slice(0, n) + '…' : str;
@@ -2046,18 +1989,32 @@
       let current = parseInt(el.textContent, 10) || 0;
       const step = Math.max(1, Math.ceil(Math.abs(target - current) / 20));
       const timer = setInterval(() => {
-        if (current < target) {
-          current = Math.min(current + step, target);
-        } else if (current > target) {
-          current = Math.max(current - step, target);
-        }
+        if (current < target) current = Math.min(current + step, target);
+        else if (current > target) current = Math.max(current - step, target);
         el.textContent = current;
         if (current === target) clearInterval(timer);
       }, 40);
     }
 
-    // Initialize state on load
-    window.addEventListener('DOMContentLoaded', loadState);
+    // ──────────────────────────────────────────────────────
+    // BOOT — Fetch live contract stats on page load
+    // ──────────────────────────────────────────────────────
+    async function bootStats() {
+      try {
+        bridge = await Promise.race([
+          waitForBridge(),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))
+        ]);
+        const total = await bridge.getTotalCasesFromChain();
+        animateCounter(els.statTotal, total);
+        animateCounter(els.statResolved, total);
+        console.log(`[VerdictAI] On-chain dispute_count: ${total}`);
+      } catch (e) {
+        console.warn('[VerdictAI] Could not fetch on-chain stats on boot:', e.message);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', bootStats);
   </script>
   <script type="module" src="./app.js"></script>
 
